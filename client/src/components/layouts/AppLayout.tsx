@@ -39,35 +39,76 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     return null; // Will redirect to login via the useEffect
   }
 
+  // Estado para verificar o status online/offline
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  // Monitorar o status de conexão
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Mobile Header - only shown on small screens */}
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Mobile Header - otimizado para dispositivos móveis */}
       {isMobile && (
         <MobileHeader 
           onMenuClick={toggleMobileSidebar}
         />
       )}
 
-      <div className="flex h-full pt-14 md:pt-0">
-        {/* Desktop Sidebar - hidden on mobile */}
-        <DesktopSidebar 
-          user={user}
-        />
+      {/* Aviso de status offline - aparece apenas quando offline */}
+      {!isOnline && (
+        <div className="bg-amber-100 text-amber-800 text-xs sm:text-sm py-1 px-2 text-center font-medium optimize-gpu">
+          <span className="inline-flex items-center">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-600 mr-1.5"></span>
+            Você está offline. Os dados serão sincronizados quando a conexão for restabelecida.
+          </span>
+        </div>
+      )}
 
-        {/* Mobile Sidebar - conditionally rendered when open */}
+      <div className="flex flex-grow h-full pt-14 md:pt-0">
+        {/* Desktop Sidebar - oculto em dispositivos móveis */}
+        <aside className="hidden md:block">
+          <DesktopSidebar 
+            user={user}
+          />
+        </aside>
+
+        {/* Mobile Sidebar - renderizado condicionalmente */}
         <MobileSidebar 
           user={user}
           isOpen={mobileSidebarOpen} 
           onClose={() => setMobileSidebarOpen(false)}
         />
 
-        {/* Main Content */}
-        <main className="flex-1 md:ml-64 min-h-screen pb-16 md:pb-0">
-          {children}
+        {/* Conteúdo Principal - Layout Responsivo */}
+        <main className="flex-1 md:ml-64 min-h-screen pb-16 md:pb-8 transition-all duration-200 ease-in-out">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 responsive-container-xl">
+            {children}
+          </div>
         </main>
 
-        {/* Mobile Bottom Navigation */}
-        {isMobile && <MobileBottomNav />}
+        {/* Navegação Inferior para Dispositivos Móveis - Otimizada */}
+        {isMobile && (
+          <div className="fixed bottom-0 w-full z-50 optimize-gpu">
+            <MobileBottomNav />
+          </div>
+        )}
+      </div>
+      
+      {/* Indicador de Sincronização - Visível apenas quando dados estão sendo sincronizados */}
+      <div id="sync-indicator" className="fixed bottom-16 md:bottom-2 right-2 hidden items-center bg-white shadow-lg rounded-full py-1 px-3 text-xs font-medium text-gray-700 z-50">
+        <div className="animate-pulse h-2 w-2 rounded-full bg-brasilit-blue mr-2"></div>
+        <span>Sincronizando...</span>
       </div>
     </div>
   );

@@ -44,33 +44,53 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Cabeçalho Brasilit */}
-      <header className="bg-brasilit-red py-4 px-6 shadow-md">
-        <div className="max-w-7xl mx-auto flex items-center">
-          <svg width="150" height="36" viewBox="0 0 150 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-9">
+      {/* Cabeçalho Brasilit - Responsivo */}
+      <header className="bg-brasilit-red py-2 sm:py-4 px-4 sm:px-6 shadow-md">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <svg 
+            width="150" 
+            height="36" 
+            viewBox="0 0 150 36" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-8 sm:h-9 w-auto optimize-gpu"
+          >
             <path d="M10.8 7.2H21.6C27.9 7.2 32.4 11.7 32.4 18C32.4 24.3 27.9 28.8 21.6 28.8H10.8C4.5 28.8 0 24.3 0 18C0 11.7 4.5 7.2 10.8 7.2Z" fill="white"/>
             <path d="M43.2 7.2H54C60.3 7.2 64.8 11.7 64.8 18C64.8 24.3 60.3 28.8 54 28.8H43.2C36.9 28.8 32.4 24.3 32.4 18C32.4 11.7 36.9 7.2 43.2 7.2Z" fill="white"/>
             <text x="8.1" y="22.5" fontFamily="Arial" fontSize="14" fontWeight="700" fill="#EE1B24">BRASI</text>
             <text x="40.5" y="22.5" fontFamily="Arial" fontSize="14" fontWeight="700" fill="#EE1B24">LIT</text>
             <text x="68" y="19" fontFamily="Arial" fontSize="10" fontWeight="400" fill="white">SAINT-GOBAIN</text>
           </svg>
+          
+          {/* Indicador de conexão - Visível apenas em telas médias e grandes */}
+          <div className="hidden sm:flex items-center space-x-2 text-white text-sm">
+            <div className={`h-2 w-2 rounded-full ${navigator.onLine ? 'bg-green-400' : 'bg-gray-400'}`}></div>
+            <span>{navigator.onLine ? 'Online' : 'Offline'}</span>
+          </div>
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
-      <div className="flex-grow flex items-center justify-center px-4 py-12 bg-gradient-to-b from-white to-gray-100">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800">Sistema de Vistorias Técnicas</h1>
-            <div className="mt-2 h-1 w-24 bg-brasilit-red mx-auto rounded-full"></div>
-            <p className="text-gray-600 mt-4">Faça login para acessar o sistema</p>
+      {/* Conteúdo Principal - Design Responsivo */}
+      <div className="flex-grow flex items-center justify-center px-4 py-6 sm:py-12 bg-gradient-to-b from-white to-gray-100">
+        <div className="w-full max-w-md responsive-container animate-transition">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 responsive-title high-contrast-text">
+              Sistema de Vistorias Técnicas
+            </h1>
+            <div className="mt-2 h-1 w-16 sm:w-24 bg-brasilit-red mx-auto rounded-full"></div>
+            <p className="text-gray-600 mt-3 sm:mt-4 text-sm sm:text-base">
+              Faça login para acessar o sistema
+            </p>
           </div>
           
-          <Card className="shadow-lg border-t-4 border-t-brasilit-red">
-            <CardContent className="p-8">
-              <form onSubmit={handleSubmit}>
-                <div className="mb-5">
-                  <Label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+          <Card className="shadow-lg border-t-4 border-t-brasilit-red animate-transition">
+            <CardContent className="p-5 sm:p-8 responsive-card">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+                <div>
+                  <Label 
+                    htmlFor="username" 
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Email / Usuário
                   </Label>
                   <Input
@@ -79,16 +99,21 @@ const LoginPage: React.FC = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="seu.email@empresa.com"
-                    className={`bg-gray-50 border ${errors.username ? "border-destructive" : "border-gray-300"}`}
+                    className={`bg-gray-50 border ${errors.username ? "border-destructive" : "border-gray-300"} w-full`}
                     disabled={isLoading}
+                    autoComplete="username"
+                    autoFocus
                   />
                   {errors.username && (
                     <p className="mt-1 text-sm text-destructive">{errors.username}</p>
                   )}
                 </div>
                 
-                <div className="mb-6">
-                  <Label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <div>
+                  <Label 
+                    htmlFor="password" 
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Senha
                   </Label>
                   <Input
@@ -97,20 +122,26 @@ const LoginPage: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className={`bg-gray-50 border ${errors.password ? "border-destructive" : "border-gray-300"}`}
+                    className={`bg-gray-50 border ${errors.password ? "border-destructive" : "border-gray-300"} w-full`}
                     disabled={isLoading}
+                    autoComplete="current-password"
                   />
                   {errors.password && (
                     <p className="mt-1 text-sm text-destructive">{errors.password}</p>
                   )}
                   <div className="flex justify-end mt-1">
-                    <a href="#" className="text-primary text-sm hover:underline">Esqueceu a senha?</a>
+                    <a 
+                      href="#" 
+                      className="text-primary text-sm hover:underline focus:outline-none focus:ring-2 focus:ring-primary/30 rounded"
+                    >
+                      Esqueceu a senha?
+                    </a>
                   </div>
                 </div>
                 
                 <Button
                   type="submit"
-                  className="w-full bg-brasilit-red hover:bg-red-700 text-white font-medium py-2.5"
+                  className="w-full bg-brasilit-red hover:bg-red-700 text-white font-medium py-2.5 mt-2 optimized-animation"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -124,15 +155,25 @@ const LoginPage: React.FC = () => {
             </CardContent>
           </Card>
           
-          <div className="mt-6 text-center">
-            <p className="text-gray-500 text-sm">Versão 1.0.0 - Sistema de Vistorias Técnicas Brasilit</p>
+          <div className="mt-4 sm:mt-6 text-center">
+            <p className="text-gray-500 text-xs sm:text-sm">
+              Versão 1.0.0 - Sistema de Vistorias Técnicas Brasilit
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Rodapé amarelo */}
-      <footer className="bg-brasilit-yellow py-2 text-center text-black text-sm font-medium shadow-inner">
+      {/* Rodapé amarelo - Responsivo */}
+      <footer className="bg-brasilit-yellow py-1.5 sm:py-2 text-center text-black text-xs sm:text-sm font-medium shadow-inner">
         <p>&copy; 2025 Brasilit - Saint-Gobain. Todos os direitos reservados.</p>
+        
+        {/* Indicador de conexão para dispositivos móveis */}
+        <div className="flex justify-center mt-1 sm:hidden">
+          <div className="flex items-center space-x-1 text-xs">
+            <div className={`h-1.5 w-1.5 rounded-full ${navigator.onLine ? 'bg-green-600' : 'bg-gray-600'}`}></div>
+            <span>{navigator.onLine ? 'Online' : 'Offline'}</span>
+          </div>
+        </div>
       </footer>
     </div>
   );

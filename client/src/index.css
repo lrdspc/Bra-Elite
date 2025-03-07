@@ -139,3 +139,74 @@ textarea:focus {
   background: linear-gradient(110deg, #EE1B24 30%, #00529C 90%);
   color: white;
 }
+
+/* Estilos responsivos */
+@media (max-width: 640px) {
+  .responsive-container {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  h1.responsive-title {
+    font-size: 1.5rem !important;
+  }
+  
+  .responsive-hidden-mobile {
+    display: none;
+  }
+  
+  .responsive-card {
+    padding: 1rem !important;
+  }
+}
+
+/* Otimizações de performance */
+.optimize-gpu {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* Transições suaves para todos os elementos interativos */
+button, a, input, select, .card, .animate-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Melhorias para telas de alta resolução */
+@media (min-width: 1600px) {
+  .responsive-container-xl {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Estilos de acessibilidade para foco */
+button:focus-visible, 
+a:focus-visible, 
+input:focus-visible, 
+select:focus-visible, 
+textarea:focus-visible {
+  outline: 2px solid #EE1B24;
+  outline-offset: 2px;
+}
+
+/* Melhoria no contraste para elementos importantes */
+.high-contrast-text {
+  text-shadow: 0 0 1px rgba(0,0,0,0.3);
+}
+
+/* Layout fluido com grid responsivo */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 1rem;
+}
+
+/* Animações otimizadas */
+.optimized-animation {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
