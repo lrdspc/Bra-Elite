@@ -1,0 +1,433 @@
+import { users, clients, projects, inspections, evidences } from "@shared/schema";
+import type { User, InsertUser, Client, InsertClient, Project, InsertProject, Inspection, InsertInspection, Evidence, InsertEvidence } from "@shared/schema";
+
+// modify the interface with any CRUD methods
+// you might need
+export interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
+  // Client methods
+  getClient(id: number): Promise<Client | undefined>;
+  getClients(): Promise<Client[]>;
+  createClient(client: InsertClient): Promise<Client>;
+  updateClient(id: number, client: Partial<InsertClient>): Promise<Client | undefined>;
+  
+  // Project methods
+  getProject(id: number): Promise<Project | undefined>;
+  getProjects(): Promise<Project[]>;
+  getProjectsByClientId(clientId: number): Promise<Project[]>;
+  createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
+  
+  // Inspection methods
+  getInspection(id: number): Promise<Inspection | undefined>;
+  getInspections(): Promise<Inspection[]>;
+  getInspectionsByUserId(userId: number): Promise<Inspection[]>;
+  getInspectionsByClientId(clientId: number): Promise<Inspection[]>;
+  getInspectionsByProjectId(projectId: number): Promise<Inspection[]>;
+  getInspectionsByStatus(status: string): Promise<Inspection[]>;
+  createInspection(inspection: InsertInspection): Promise<Inspection>;
+  updateInspection(id: number, inspection: Partial<InsertInspection>): Promise<Inspection | undefined>;
+  
+  // Evidence methods
+  getEvidence(id: number): Promise<Evidence | undefined>;
+  getEvidencesByInspectionId(inspectionId: number): Promise<Evidence[]>;
+  createEvidence(evidence: InsertEvidence): Promise<Evidence>;
+  updateEvidence(id: number, evidence: Partial<InsertEvidence>): Promise<Evidence | undefined>;
+  deleteEvidence(id: number): Promise<boolean>;
+}
+
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private clients: Map<number, Client>;
+  private projects: Map<number, Project>;
+  private inspections: Map<number, Inspection>;
+  private evidences: Map<number, Evidence>;
+  
+  private userId: number;
+  private clientId: number;
+  private projectId: number;
+  private inspectionId: number;
+  private evidenceId: number;
+
+  constructor() {
+    this.users = new Map();
+    this.clients = new Map();
+    this.projects = new Map();
+    this.inspections = new Map();
+    this.evidences = new Map();
+    
+    this.userId = 1;
+    this.clientId = 1;
+    this.projectId = 1;
+    this.inspectionId = 1;
+    this.evidenceId = 1;
+    
+    // Add sample user
+    this.createUser({
+      username: "tecnico",
+      password: "senha123",
+      name: "João da Silva",
+      email: "joao@brasilit.com",
+      role: "technician"
+    });
+    
+    // Add sample clients
+    const client1 = this.createUser({
+      username: "admin",
+      password: "admin123",
+      name: "Admin",
+      email: "admin@brasilit.com",
+      role: "admin"
+    });
+    
+    // Add sample clients
+    const client1Id = this.createClient({
+      name: "Condomínio Solar das Flores",
+      type: "company",
+      document: "12.345.678/0001-90",
+      contactName: "Pedro Santos",
+      contactPhone: "(11) 98765-4321",
+      email: "contato@solardasflores.com.br"
+    }).id;
+    
+    const client2Id = this.createClient({
+      name: "Residencial Vila Nova",
+      type: "company",
+      document: "23.456.789/0001-12",
+      contactName: "Maria Oliveira",
+      contactPhone: "(11) 97654-3210",
+      email: "contato@vilanovo.com.br"
+    }).id;
+    
+    const client3Id = this.createClient({
+      name: "Escola Municipal Monteiro Lobato",
+      type: "company",
+      document: "34.567.890/0001-23",
+      contactName: "José Pereira",
+      contactPhone: "(11) 96543-2109",
+      email: "contato@escolamonteiro.edu.br"
+    }).id;
+    
+    // Add sample projects
+    const project1Id = this.createProject({
+      clientId: client1Id,
+      name: "Condomínio Solar das Flores",
+      address: "Av. Paulista",
+      number: "1000",
+      complement: "Bloco A",
+      neighborhood: "Bela Vista",
+      city: "São Paulo",
+      state: "SP",
+      zipCode: "01310-000",
+      latitude: "-23.5630",
+      longitude: "-46.6543"
+    }).id;
+    
+    const project2Id = this.createProject({
+      clientId: client2Id,
+      name: "Residencial Vila Nova",
+      address: "Rua das Flores",
+      number: "123",
+      neighborhood: "Centro",
+      city: "Campinas",
+      state: "SP",
+      zipCode: "13010-000",
+      latitude: "-22.9064",
+      longitude: "-47.0616"
+    }).id;
+    
+    const project3Id = this.createProject({
+      clientId: client3Id,
+      name: "Escola Municipal Monteiro Lobato",
+      address: "Av. Brasil",
+      number: "500",
+      neighborhood: "Jardim América",
+      city: "São Paulo",
+      state: "SP",
+      zipCode: "01430-000",
+      latitude: "-23.5728",
+      longitude: "-46.6444"
+    }).id;
+    
+    // Add sample inspections
+    this.createInspection({
+      protocolNumber: "VT-2023-0782",
+      userId: 1,
+      clientId: client1Id,
+      projectId: project1Id,
+      status: "completed",
+      scheduledDate: new Date("2023-04-22T14:30:00"),
+      startTime: new Date("2023-04-22T14:30:00"),
+      endTime: new Date("2023-04-22T16:00:00"),
+      roofModel: "Telha Ondulada",
+      quantity: 250,
+      area: 500,
+      installationDate: new Date("2021-08-15"),
+      warranty: "7",
+      conclusion: "Aprovado",
+      recommendation: "Manutenção preventiva anual"
+    });
+    
+    this.createInspection({
+      protocolNumber: "VT-2023-0781",
+      userId: 1,
+      clientId: client2Id,
+      projectId: project2Id,
+      status: "in_review",
+      scheduledDate: new Date("2023-04-21T09:00:00"),
+      startTime: new Date("2023-04-21T09:00:00"),
+      endTime: new Date("2023-04-21T10:30:00"),
+      roofModel: "Telha Plana",
+      quantity: 180,
+      area: 350,
+      installationDate: new Date("2020-06-10"),
+      warranty: "7",
+      conclusion: "Pendente revisão",
+      recommendation: "Aguardando análise técnica"
+    });
+    
+    this.createInspection({
+      protocolNumber: "VT-2023-0780",
+      userId: 1,
+      clientId: client3Id,
+      projectId: project3Id,
+      status: "in_progress",
+      scheduledDate: new Date("2023-04-20T13:00:00"),
+      startTime: new Date("2023-04-20T13:00:00"),
+      roofModel: "Fibrocimento",
+      quantity: 300,
+      area: 600,
+      installationDate: new Date("2019-12-05"),
+      warranty: "5"
+    });
+    
+    // Schedule upcoming inspections
+    this.createInspection({
+      protocolNumber: "VT-2023-0783",
+      userId: 1,
+      clientId: client1Id,
+      projectId: project1Id,
+      status: "scheduled",
+      scheduledDate: new Date(Date.now() + 3600000), // Today in 1 hour
+      roofModel: "Telha Ondulada"
+    });
+    
+    this.createInspection({
+      protocolNumber: "VT-2023-0784",
+      userId: 1,
+      clientId: client2Id,
+      projectId: project2Id,
+      status: "scheduled",
+      scheduledDate: new Date(Date.now() + 86400000), // Tomorrow
+      roofModel: "Telha Plana"
+    });
+    
+    this.createInspection({
+      protocolNumber: "VT-2023-0785",
+      userId: 1,
+      clientId: client3Id,
+      projectId: project3Id,
+      status: "scheduled",
+      scheduledDate: new Date(Date.now() + 86400000 * 4), // In 4 days
+      roofModel: "Fibrocimento"
+    });
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.userId++;
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
+    return user;
+  }
+  
+  // Client methods
+  async getClient(id: number): Promise<Client | undefined> {
+    return this.clients.get(id);
+  }
+  
+  async getClients(): Promise<Client[]> {
+    return Array.from(this.clients.values());
+  }
+  
+  async createClient(insertClient: InsertClient): Promise<Client> {
+    const id = this.clientId++;
+    const client: Client = { 
+      ...insertClient, 
+      id, 
+      createdAt: new Date(), 
+      updatedAt: new Date() 
+    };
+    this.clients.set(id, client);
+    return client;
+  }
+  
+  async updateClient(id: number, clientData: Partial<InsertClient>): Promise<Client | undefined> {
+    const client = await this.getClient(id);
+    if (!client) return undefined;
+    
+    const updatedClient: Client = {
+      ...client,
+      ...clientData,
+      updatedAt: new Date()
+    };
+    
+    this.clients.set(id, updatedClient);
+    return updatedClient;
+  }
+  
+  // Project methods
+  async getProject(id: number): Promise<Project | undefined> {
+    return this.projects.get(id);
+  }
+  
+  async getProjects(): Promise<Project[]> {
+    return Array.from(this.projects.values());
+  }
+  
+  async getProjectsByClientId(clientId: number): Promise<Project[]> {
+    return Array.from(this.projects.values()).filter(
+      (project) => project.clientId === clientId
+    );
+  }
+  
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const id = this.projectId++;
+    const project: Project = {
+      ...insertProject,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.projects.set(id, project);
+    return project;
+  }
+  
+  async updateProject(id: number, projectData: Partial<InsertProject>): Promise<Project | undefined> {
+    const project = await this.getProject(id);
+    if (!project) return undefined;
+    
+    const updatedProject: Project = {
+      ...project,
+      ...projectData,
+      updatedAt: new Date()
+    };
+    
+    this.projects.set(id, updatedProject);
+    return updatedProject;
+  }
+  
+  // Inspection methods
+  async getInspection(id: number): Promise<Inspection | undefined> {
+    return this.inspections.get(id);
+  }
+  
+  async getInspections(): Promise<Inspection[]> {
+    return Array.from(this.inspections.values());
+  }
+  
+  async getInspectionsByUserId(userId: number): Promise<Inspection[]> {
+    return Array.from(this.inspections.values()).filter(
+      (inspection) => inspection.userId === userId
+    );
+  }
+  
+  async getInspectionsByClientId(clientId: number): Promise<Inspection[]> {
+    return Array.from(this.inspections.values()).filter(
+      (inspection) => inspection.clientId === clientId
+    );
+  }
+  
+  async getInspectionsByProjectId(projectId: number): Promise<Inspection[]> {
+    return Array.from(this.inspections.values()).filter(
+      (inspection) => inspection.projectId === projectId
+    );
+  }
+  
+  async getInspectionsByStatus(status: string): Promise<Inspection[]> {
+    return Array.from(this.inspections.values()).filter(
+      (inspection) => inspection.status === status
+    );
+  }
+  
+  async createInspection(insertInspection: InsertInspection): Promise<Inspection> {
+    const id = this.inspectionId++;
+    const inspection: Inspection = {
+      ...insertInspection,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.inspections.set(id, inspection);
+    return inspection;
+  }
+  
+  async updateInspection(id: number, inspectionData: Partial<InsertInspection>): Promise<Inspection | undefined> {
+    const inspection = await this.getInspection(id);
+    if (!inspection) return undefined;
+    
+    const updatedInspection: Inspection = {
+      ...inspection,
+      ...inspectionData,
+      updatedAt: new Date()
+    };
+    
+    this.inspections.set(id, updatedInspection);
+    return updatedInspection;
+  }
+  
+  // Evidence methods
+  async getEvidence(id: number): Promise<Evidence | undefined> {
+    return this.evidences.get(id);
+  }
+  
+  async getEvidencesByInspectionId(inspectionId: number): Promise<Evidence[]> {
+    return Array.from(this.evidences.values()).filter(
+      (evidence) => evidence.inspectionId === inspectionId
+    );
+  }
+  
+  async createEvidence(insertEvidence: InsertEvidence): Promise<Evidence> {
+    const id = this.evidenceId++;
+    const evidence: Evidence = {
+      ...insertEvidence,
+      id,
+      createdAt: new Date()
+    };
+    this.evidences.set(id, evidence);
+    return evidence;
+  }
+  
+  async updateEvidence(id: number, evidenceData: Partial<InsertEvidence>): Promise<Evidence | undefined> {
+    const evidence = await this.getEvidence(id);
+    if (!evidence) return undefined;
+    
+    const updatedEvidence: Evidence = {
+      ...evidence,
+      ...evidenceData
+    };
+    
+    this.evidences.set(id, updatedEvidence);
+    return updatedEvidence;
+  }
+  
+  async deleteEvidence(id: number): Promise<boolean> {
+    return this.evidences.delete(id);
+  }
+}
+
+export const storage = new MemStorage();

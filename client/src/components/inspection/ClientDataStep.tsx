@@ -1,0 +1,482 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useQuery } from '@tanstack/react-query';
+import { Search } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatDocumentNumber, formatPhoneNumber } from '@/lib/utils';
+
+interface ClientDataStepProps {
+  formData: any;
+  updateFormData: (data: any) => void;
+  onNext: () => void;
+}
+
+const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormData, onNext }) => {
+  const [clientType, setClientType] = useState(formData.clientType || 'company');
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [coordinates, setCoordinates] = useState<{lat: string, lng: string} | null>(null);
+
+  // Fetch clients for dropdown
+  const { data: clients } = useQuery({
+    queryKey: ['/api/clients'],
+  });
+
+  // Fetch projects based on selected client
+  const { data: projects, isLoading: projectsLoading } = useQuery({
+    queryKey: [`/api/projects?clientId=${selectedClient?.id}`],
+    enabled: !!selectedClient?.id,
+  });
+
+  // Load existing data if editing
+  useEffect(() => {
+    if (formData.clientId && clients) {
+      const client = clients.find((c: any) => c.id === formData.clientId);
+      if (client) {
+        setSelectedClient(client);
+        setClientType(client.type);
+      }
+    }
+
+    if (formData.projectId && projects) {
+      const project = projects.find((p: any) => p.id === formData.projectId);
+      if (project) {
+        setSelectedProject(project);
+      }
+    }
+  }, [formData, clients, projects]);
+
+  // Get current geolocation
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoordinates({
+            lat: position.coords.latitude.toString(),
+            lng: position.coords.longitude.toString()
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    }
+  }, []);
+
+  const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const clientId = parseInt(e.target.value);
+    if (clientId) {
+      const selectedClient = clients.find((c: any) => c.id === clientId);
+      setSelectedClient(selectedClient);
+      setClientType(selectedClient.type);
+      
+      // Clear project when client changes
+      setSelectedProject(null);
+      
+      updateFormData({
+        clientId,
+        clientName: selectedClient.name,
+        clientType: selectedClient.type,
+        contactName: selectedClient.contactName,
+        contactPhone: selectedClient.contactPhone,
+        email: selectedClient.email,
+        projectId: null,
+      });
+    } else {
+      setSelectedClient(null);
+      setSelectedProject(null);
+    }
+  };
+
+  const handleProjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const projectId = parseInt(e.target.value);
+    if (projectId) {
+      const selectedProject = projects.find((p: any) => p.id === projectId);
+      setSelectedProject(selectedProject);
+      
+      updateFormData({
+        projectId,
+        projectName: selectedProject.name,
+        address: selectedProject.address,
+        number: selectedProject.number,
+        complement: selectedProject.complement,
+        neighborhood: selectedProject.neighborhood,
+        city: selectedProject.city,
+        state: selectedProject.state,
+        zipCode: selectedProject.zipCode,
+        latitude: selectedProject.latitude || coordinates?.lat,
+        longitude: selectedProject.longitude || coordinates?.lng,
+      });
+    } else {
+      setSelectedProject(null);
+    }
+  };
+
+  const handleCepSearch = async () => {
+    if (!formData.zipCode || formData.zipCode.length < 8) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${formData.zipCode.replace(/\D/g, '')}/json/`);
+      const data = await response.json();
+      
+      if (!data.erro) {
+        updateFormData({
+          address: data.logradouro,
+          neighborhood: data.bairro,
+          city: data.localidade,
+          state: data.uf,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching CEP:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    updateFormData({ [name]: value });
+  };
+
+  return (
+    <>
+      <Card className="mb-6">
+        <CardContent className="p-4 md:p-6">
+          <h2 className="text-lg font-medium mb-4">Informações do Cliente</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="col-span-1 md:col-span-2">
+              <Label className="block text-sm font-medium text-muted-foreground mb-1">Tipo de Cliente</Label>
+              <RadioGroup 
+                value={clientType} 
+                onValueChange={(value) => {
+                  setClientType(value);
+                  updateFormData({ clientType: value });
+                }}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="company" id="company" />
+                  <Label htmlFor="company">Pessoa Jurídica</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="person" id="person" />
+                  <Label htmlFor="person">Pessoa Física</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="col-span-1 md:col-span-2">
+              <Label htmlFor="clientId" className="block text-sm font-medium text-muted-foreground mb-1">
+                Selecione um cliente existente
+              </Label>
+              <select
+                id="clientId"
+                value={selectedClient?.id || ''}
+                onChange={handleClientChange}
+                className="w-full px-3 py-2 border border-input rounded-md"
+              >
+                <option value="">-- Selecione um cliente --</option>
+                {clients?.map((client: any) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name} {client.document ? `(${formatDocumentNumber(client.document)})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <Label htmlFor="clientName" className="block text-sm font-medium text-muted-foreground mb-1">
+                {clientType === 'company' ? 'Razão Social' : 'Nome Completo'}
+              </Label>
+              <Input
+                id="clientName"
+                name="clientName"
+                value={formData.clientName || ''}
+                onChange={handleFieldChange}
+                placeholder={clientType === 'company' ? 'Empresa S/A' : 'João da Silva'}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="document" className="block text-sm font-medium text-muted-foreground mb-1">
+                {clientType === 'company' ? 'CNPJ' : 'CPF'}
+              </Label>
+              <Input
+                id="document"
+                name="document"
+                value={formData.document || ''}
+                onChange={handleFieldChange}
+                placeholder={clientType === 'company' ? '00.000.000/0000-00' : '000.000.000-00'}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="contactName" className="block text-sm font-medium text-muted-foreground mb-1">
+                Nome do Contato
+              </Label>
+              <Input
+                id="contactName"
+                name="contactName"
+                value={formData.contactName || ''}
+                onChange={handleFieldChange}
+                placeholder="Nome do responsável"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="contactPhone" className="block text-sm font-medium text-muted-foreground mb-1">
+                Telefone
+              </Label>
+              <Input
+                id="contactPhone"
+                name="contactPhone"
+                value={formData.contactPhone || ''}
+                onChange={handleFieldChange}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            
+            <div className="col-span-1 md:col-span-2">
+              <Label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-1">
+                Email
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email || ''}
+                onChange={handleFieldChange}
+                placeholder="email@exemplo.com"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardContent className="p-4 md:p-6">
+          <h2 className="text-lg font-medium mb-4">Endereço do Empreendimento</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="col-span-1 md:col-span-2">
+              <Label htmlFor="projectId" className="block text-sm font-medium text-muted-foreground mb-1">
+                Empreendimento
+              </Label>
+              <select
+                id="projectId"
+                value={selectedProject?.id || ''}
+                onChange={handleProjectChange}
+                disabled={!selectedClient}
+                className="w-full px-3 py-2 border border-input rounded-md"
+              >
+                <option value="">-- Selecione um empreendimento --</option>
+                {projectsLoading ? (
+                  <option disabled>Carregando...</option>
+                ) : projects?.length ? (
+                  projects.map((project: any) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Nenhum empreendimento disponível</option>
+                )}
+              </select>
+            </div>
+            
+            <div className="md:col-span-4">
+              <Label htmlFor="projectName" className="block text-sm font-medium text-muted-foreground mb-1">
+                Nome do Empreendimento
+              </Label>
+              <Input
+                id="projectName"
+                name="projectName"
+                value={formData.projectName || ''}
+                onChange={handleFieldChange}
+                placeholder="Nome do local da vistoria"
+              />
+            </div>
+            
+            <div className="md:col-span-2">
+              <Label htmlFor="zipCode" className="block text-sm font-medium text-muted-foreground mb-1">
+                CEP
+              </Label>
+              <div className="flex">
+                <Input
+                  id="zipCode"
+                  name="zipCode"
+                  value={formData.zipCode || ''}
+                  onChange={handleFieldChange}
+                  placeholder="00000-000"
+                  className="flex-1 rounded-r-none"
+                />
+                <Button 
+                  onClick={handleCepSearch} 
+                  variant="secondary"
+                  disabled={isLoading}
+                  className="rounded-l-none"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="md:col-span-4">
+              <Label htmlFor="address" className="block text-sm font-medium text-muted-foreground mb-1">
+                Logradouro
+              </Label>
+              <Input
+                id="address"
+                name="address"
+                value={formData.address || ''}
+                onChange={handleFieldChange}
+                placeholder="Rua, Avenida, etc."
+              />
+            </div>
+            
+            <div className="md:col-span-1">
+              <Label htmlFor="number" className="block text-sm font-medium text-muted-foreground mb-1">
+                Número
+              </Label>
+              <Input
+                id="number"
+                name="number"
+                value={formData.number || ''}
+                onChange={handleFieldChange}
+                placeholder="Nº"
+              />
+            </div>
+            
+            <div className="md:col-span-2">
+              <Label htmlFor="complement" className="block text-sm font-medium text-muted-foreground mb-1">
+                Complemento
+              </Label>
+              <Input
+                id="complement"
+                name="complement"
+                value={formData.complement || ''}
+                onChange={handleFieldChange}
+                placeholder="Apto, Bloco, etc."
+              />
+            </div>
+            
+            <div className="md:col-span-3">
+              <Label htmlFor="neighborhood" className="block text-sm font-medium text-muted-foreground mb-1">
+                Bairro
+              </Label>
+              <Input
+                id="neighborhood"
+                name="neighborhood"
+                value={formData.neighborhood || ''}
+                onChange={handleFieldChange}
+                placeholder="Bairro"
+              />
+            </div>
+            
+            <div className="md:col-span-3">
+              <Label htmlFor="city" className="block text-sm font-medium text-muted-foreground mb-1">
+                Cidade
+              </Label>
+              <Input
+                id="city"
+                name="city"
+                value={formData.city || ''}
+                onChange={handleFieldChange}
+                placeholder="Cidade"
+              />
+            </div>
+            
+            <div className="md:col-span-2">
+              <Label htmlFor="state" className="block text-sm font-medium text-muted-foreground mb-1">
+                Estado
+              </Label>
+              <select
+                id="state"
+                name="state"
+                value={formData.state || ''}
+                onChange={(e) => updateFormData({ state: e.target.value })}
+                className="w-full px-3 py-2 border border-input rounded-md"
+              >
+                <option value="">Selecione</option>
+                <option value="AC">Acre</option>
+                <option value="AL">Alagoas</option>
+                <option value="AP">Amapá</option>
+                <option value="AM">Amazonas</option>
+                <option value="BA">Bahia</option>
+                <option value="CE">Ceará</option>
+                <option value="DF">Distrito Federal</option>
+                <option value="ES">Espírito Santo</option>
+                <option value="GO">Goiás</option>
+                <option value="MA">Maranhão</option>
+                <option value="MT">Mato Grosso</option>
+                <option value="MS">Mato Grosso do Sul</option>
+                <option value="MG">Minas Gerais</option>
+                <option value="PA">Pará</option>
+                <option value="PB">Paraíba</option>
+                <option value="PR">Paraná</option>
+                <option value="PE">Pernambuco</option>
+                <option value="PI">Piauí</option>
+                <option value="RJ">Rio de Janeiro</option>
+                <option value="RN">Rio Grande do Norte</option>
+                <option value="RS">Rio Grande do Sul</option>
+                <option value="RO">Rondônia</option>
+                <option value="RR">Roraima</option>
+                <option value="SC">Santa Catarina</option>
+                <option value="SP">São Paulo</option>
+                <option value="SE">Sergipe</option>
+                <option value="TO">Tocantins</option>
+              </select>
+            </div>
+            
+            <div className="md:col-span-6">
+              <div className="rounded-md border border-input overflow-hidden h-48">
+                {coordinates ? (
+                  <iframe 
+                    title="Mapa de Localização"
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    src={`https://maps.google.com/maps?q=${formData.latitude || coordinates.lat},${formData.longitude || coordinates.lng}&z=15&output=embed`}
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="bg-muted h-full flex items-center justify-center">
+                    <span className="text-muted-foreground">Carregando mapa...</span>
+                  </div>
+                )}
+              </div>
+              <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                {coordinates ? (
+                  <>
+                    <span className="material-icons text-success mr-1 text-sm">gps_fixed</span>
+                    <span>Localização confirmada via GPS</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-icons text-error mr-1 text-sm">gps_off</span>
+                    <span>Não foi possível obter a localização via GPS</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button onClick={onNext} className="bg-primary text-white py-2 px-6 rounded-md font-medium hover:bg-primary-dark transition">
+          Continuar
+        </Button>
+      </div>
+    </>
+  );
+};
+
+export default ClientDataStep;

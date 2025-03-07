@@ -1,0 +1,448 @@
+import React, { useState, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Camera, X, Pencil, Image, Upload, Trash2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
+
+interface EvidenceImage {
+  id: string;
+  url: string;
+  category: string;
+  notes?: string;
+}
+
+interface EvidenceStepProps {
+  formData: any;
+  updateFormData: (data: any) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+}
+
+const EvidenceStep: React.FC<EvidenceStepProps> = ({ 
+  formData, 
+  updateFormData, 
+  onPrevious, 
+  onNext 
+}) => {
+  // Initialize from form data or with empty array
+  const [evidences, setEvidences] = useState<EvidenceImage[]>(() => {
+    if (formData.evidences && Array.isArray(formData.evidences)) {
+      return formData.evidences;
+    }
+    return [];
+  });
+
+  const [activeTab, setActiveTab] = useState('all');
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<EvidenceImage | null>(null);
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState('geral');
+  const [currentNotes, setCurrentNotes] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const categories = [
+    { id: 'geral', name: 'Geral' },
+    { id: 'telhado', name: 'Telhado' },
+    { id: 'estrutura', name: 'Estrutura' },
+    { id: 'infiltracao', name: 'Infiltração' },
+    { id: 'instalacao', name: 'Instalação' },
+    { id: 'outros', name: 'Outros' }
+  ];
+
+  const filteredEvidences = activeTab === 'all' 
+    ? evidences 
+    : evidences.filter(ev => ev.category === activeTab);
+
+  const captureImage = () => {
+    // In a real app, this would access the device camera
+    // For our demo, we'll simulate it with a placeholder
+    const newImage: EvidenceImage = {
+      id: `evidence-${Date.now()}`,
+      url: `https://via.placeholder.com/800x600?text=Evidência+${evidences.length + 1}`,
+      category: currentCategory,
+      notes: currentNotes
+    };
+    
+    const updatedEvidences = [...evidences, newImage];
+    setEvidences(updatedEvidences);
+    updateFormData({ evidences: updatedEvidences });
+    
+    // Reset state
+    setIsCapturing(false);
+    setCurrentNotes('');
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      // In a real app, you would upload the file to a server
+      // For our demo, we'll use a placeholder URL
+      
+      const newImage: EvidenceImage = {
+        id: `evidence-${Date.now()}`,
+        url: URL.createObjectURL(file), // This creates a temporary URL in memory
+        category: currentCategory,
+        notes: currentNotes
+      };
+      
+      const updatedEvidences = [...evidences, newImage];
+      setEvidences(updatedEvidences);
+      updateFormData({ evidences: updatedEvidences });
+      
+      // Reset state
+      setCurrentNotes('');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const deleteImage = (id: string) => {
+    const updatedEvidences = evidences.filter(ev => ev.id !== id);
+    setEvidences(updatedEvidences);
+    updateFormData({ evidences: updatedEvidences });
+  };
+
+  const updateImageDetails = () => {
+    if (!selectedImage) return;
+    
+    const updatedEvidences = evidences.map(ev => 
+      ev.id === selectedImage.id 
+        ? { ...ev, category: currentCategory, notes: currentNotes } 
+        : ev
+    );
+    
+    setEvidences(updatedEvidences);
+    updateFormData({ evidences: updatedEvidences });
+    setIsEditingImage(false);
+    setSelectedImage(null);
+  };
+
+  const handleEditImage = (evidence: EvidenceImage) => {
+    setSelectedImage(evidence);
+    setCurrentCategory(evidence.category);
+    setCurrentNotes(evidence.notes || '');
+    setIsEditingImage(true);
+  };
+
+  const handleViewImage = (evidence: EvidenceImage) => {
+    setSelectedImage(evidence);
+  };
+
+  return (
+    <>
+      <Card className="mb-6">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-medium">Evidências</h2>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCapturing(true)}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Capturar Foto
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload
+              </Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/*"
+                className="hidden"
+              />
+            </div>
+          </div>
+          
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full justify-start mb-4 overflow-x-auto flex-nowrap">
+              <TabsTrigger value="all" className="min-w-[80px]">Todas</TabsTrigger>
+              {categories.map(category => (
+                <TabsTrigger 
+                  key={category.id} 
+                  value={category.id}
+                  className="min-w-[80px]"
+                >
+                  {category.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            <TabsContent value={activeTab} className="mt-0">
+              {filteredEvidences.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {filteredEvidences.map((evidence) => (
+                    <div 
+                      key={evidence.id} 
+                      className="relative group border border-input rounded-md overflow-hidden"
+                    >
+                      <div 
+                        className="aspect-[4/3] bg-muted cursor-pointer"
+                        onClick={() => handleViewImage(evidence)}
+                      >
+                        <img 
+                          src={evidence.url} 
+                          alt="Evidência" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      <div className="absolute p-1 text-[10px] font-medium bg-black/60 text-white bottom-0 left-0 right-0">
+                        {categories.find(c => c.id === evidence.category)?.name || 'Geral'}
+                      </div>
+                      
+                      <div className="absolute top-0 right-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="h-7 w-7 bg-white/80 hover:bg-white"
+                          onClick={() => handleEditImage(evidence)}
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-foreground" />
+                        </Button>
+                        
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => deleteImage(evidence.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                      
+                      {evidence.notes && (
+                        <div className="absolute bottom-6 left-0 right-0 flex justify-center">
+                          <div className="w-2 h-2 rounded-full bg-primary" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="border border-dashed border-input rounded-md p-8 flex flex-col items-center justify-center text-center">
+                  <Image className="h-10 w-10 text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground mb-1">Nenhuma evidência adicionada</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Capture fotos ou faça upload de imagens para documentar a vistoria
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsCapturing(true)}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Capturar Foto
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+      
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onPrevious}>
+          Voltar
+        </Button>
+        <Button onClick={onNext}>
+          Continuar
+        </Button>
+      </div>
+
+      {/* Photo Capture Dialog */}
+      <Dialog open={isCapturing} onOpenChange={setIsCapturing}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Capturar Evidência</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="aspect-[4/3] bg-muted rounded-md flex items-center justify-center">
+              <Camera className="h-10 w-10 text-muted-foreground" />
+              {/* In a real app, this would show the camera preview */}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoria</Label>
+              <select
+                id="category"
+                value={currentCategory}
+                onChange={(e) => setCurrentCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              >
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="notes">Observações</Label>
+              <textarea
+                id="notes"
+                value={currentNotes}
+                onChange={(e) => setCurrentNotes(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md min-h-[80px] resize-none"
+                placeholder="Adicione observações sobre esta evidência..."
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCapturing(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={captureImage}>
+              Capturar Foto
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Image Dialog */}
+      <Dialog open={isEditingImage} onOpenChange={setIsEditingImage}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Evidência</DialogTitle>
+          </DialogHeader>
+          
+          {selectedImage && (
+            <div className="space-y-4">
+              <div className="aspect-[4/3] bg-muted rounded-md overflow-hidden">
+                <img 
+                  src={selectedImage.url} 
+                  alt="Evidência" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Categoria</Label>
+                <select
+                  id="edit-category"
+                  value={currentCategory}
+                  onChange={(e) => setCurrentCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-input rounded-md bg-background"
+                >
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-notes">Observações</Label>
+                <textarea
+                  id="edit-notes"
+                  value={currentNotes}
+                  onChange={(e) => setCurrentNotes(e.target.value)}
+                  className="w-full px-3 py-2 border border-input rounded-md min-h-[80px] resize-none"
+                  placeholder="Adicione observações sobre esta evidência..."
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditingImage(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={updateImageDetails}>
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* View Image Dialog */}
+      <Dialog open={!!selectedImage && !isEditingImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-3xl">
+          {selectedImage && (
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="md:flex-1">
+                <div className="rounded-md overflow-hidden">
+                  <img 
+                    src={selectedImage.url} 
+                    alt="Evidência" 
+                    className="w-full h-auto max-h-[70vh] object-contain"
+                  />
+                </div>
+              </div>
+              
+              <div className="md:w-64 space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Categoria</h3>
+                  <p className="text-base">
+                    {categories.find(c => c.id === selectedImage.category)?.name || 'Geral'}
+                  </p>
+                </div>
+                
+                {selectedImage.notes && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Observações</h3>
+                    <p className="text-sm mt-1">
+                      {selectedImage.notes}
+                    </p>
+                  </div>
+                )}
+                
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleEditImage(selectedImage)}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                  
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      deleteImage(selectedImage.id);
+                      setSelectedImage(null);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default EvidenceStep;

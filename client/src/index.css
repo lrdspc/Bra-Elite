@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 216 83% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 36 100% 50%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 216 83% 50%;
+
+    --radius: 0.375rem;
+    
+    --success: 135 50% 43%;
+    --success-foreground: 210 40% 98%;
+    
+    --chart-1: 216 83% 50%;
+    --chart-2: 36 100% 50%;
+    --chart-3: 135 50% 43%;
+    --chart-4: 0 84.2% 60.2%;
+    --chart-5: 262 83% 58%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Custom scroll styling */
+.scroll-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scroll-thin::-webkit-scrollbar-thumb {
+  @apply bg-neutral-400/50 rounded-sm;
+}
+
+/* Form fields focus styling */
+input:focus, 
+select:focus, 
+textarea:focus {
+  @apply outline-none ring-2 ring-primary/30;
+}
+
+/* Custom animation for loading indicators */
+@keyframes pulse-custom {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-custom {
+  animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
