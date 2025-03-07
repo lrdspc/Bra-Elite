@@ -85,6 +85,28 @@ const LoginPage: React.FC = () => {
           
           <Card className="shadow-lg border-t-4 border-t-brasilit-red animate-transition">
             <CardContent className="p-5 sm:p-8 responsive-card">
+              {/* Banner de demonstração */}
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4 text-blue-800 text-sm">
+                <h3 className="font-medium mb-1">🔑 Demonstração</h3>
+                <p className="text-xs text-blue-700 mb-2">
+                  Use uma das credenciais abaixo para entrar no sistema:
+                </p>
+                <div className="space-y-1.5 text-xs font-mono bg-white/50 p-2 rounded border border-blue-100">
+                  <div className="flex">
+                    <span className="w-28">Técnico:</span>
+                    <span className="font-medium">tecnico / 123456</span>
+                  </div>
+                  <div className="flex">
+                    <span className="w-28">Gestor:</span>
+                    <span className="font-medium">gestor / 123456</span>
+                  </div>
+                  <div className="flex">
+                    <span className="w-28">Administrador:</span>
+                    <span className="font-medium">admin / 123456</span>
+                  </div>
+                </div>
+              </div>
+              
               <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                 <div>
                   <Label 
@@ -151,6 +173,55 @@ const LoginPage: React.FC = () => {
                     </>
                   ) : 'Entrar'}
                 </Button>
+                
+                {/* Botões de acesso rápido */}
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="text-xs text-gray-500 mb-2">Acesso rápido:</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-8"
+                      disabled={isLoading}
+                      onClick={() => {
+                        setUsername('tecnico');
+                        setPassword('123456');
+                        setTimeout(() => handleSubmit({ preventDefault: () => {} } as any), 100);
+                      }}
+                    >
+                      Técnico
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-8"
+                      disabled={isLoading}
+                      onClick={() => {
+                        setUsername('gestor');
+                        setPassword('123456');
+                        setTimeout(() => handleSubmit({ preventDefault: () => {} } as any), 100);
+                      }}
+                    >
+                      Gestor
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-8"
+                      disabled={isLoading}
+                      onClick={() => {
+                        setUsername('admin');
+                        setPassword('123456');
+                        setTimeout(() => handleSubmit({ preventDefault: () => {} } as any), 100);
+                      }}
+                    >
+                      Admin
+                    </Button>
+                  </div>
+                </div>
               </form>
             </CardContent>
           </Card>

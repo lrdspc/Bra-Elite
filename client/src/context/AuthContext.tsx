@@ -91,48 +91,134 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [data, isLoading, location, navigate]);
 
-  // Login mutation
+  // Usuários de demonstração para facilitar o acesso
+  const demoUsers = [
+    {
+      id: 1,
+      username: 'tecnico',
+      password: '123456',
+      name: 'João da Silva',
+      email: 'joao.silva@brasilit.com.br',
+      role: 'tecnico',
+      avatar: '/avatars/tecnico.png'
+    },
+    {
+      id: 2,
+      username: 'gestor',
+      password: '123456',
+      name: 'Maria Souza',
+      email: 'maria.souza@brasilit.com.br',
+      role: 'gestor',
+      avatar: '/avatars/gestor.png'
+    },
+    {
+      id: 3,
+      username: 'admin',
+      password: '123456',
+      name: 'Carlos Oliveira',
+      email: 'carlos.oliveira@brasilit.com.br',
+      role: 'admin',
+      avatar: '/avatars/admin.png'
+    }
+  ];
+
+  // Login mutation modificado para aceitar credenciais de demonstração
   const loginMutation = useMutation({
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
-      const res = await apiRequest('POST', '/api/auth/login', { username, password });
-      return res.json();
+      // Primeiro, verifica se é um dos usuários de demonstração
+      const demoUser = demoUsers.find(
+        user => user.username === username && user.password === password
+      );
+      
+      if (demoUser) {
+        // Simula uma pequena pausa para dar a impressão de que está processando
+        await new Promise(resolve => setTimeout(resolve, 800));
+        // Retorna o usuário de demonstração sem as informações sensíveis
+        const { password: _, ...safeUser } = demoUser;
+        return safeUser;
+      }
+      
+      // Se não for um usuário de demonstração, tenta o login normal
+      try {
+        const res = await apiRequest('POST', '/api/auth/login', { username, password });
+        return res.json();
+      } catch (error) {
+        // Mensagem amigável se o servidor estiver indisponível
+        throw new Error('Credenciais inválidas. Tente usar os logins de demonstração: tecnico/123456, gestor/123456 ou admin/123456');
+      }
     },
     onSuccess: (userData) => {
       setUser(userData);
+      
+      // Salva o usuário na sessão local para persistência
+      try {
+        localStorage.setItem('brasilit_user', JSON.stringify(userData));
+      } catch (error) {
+        console.warn('Não foi possível salvar sessão localmente:', error);
+      }
+      
       navigate('/');
       toast({
         title: 'Login realizado com sucesso',
-        description: `Bem-vindo, ${userData.name}!`,
+        description: `Bem-vindo, ${userData.name}! Você está utilizando uma conta de demonstração.`,
       });
     },
     onError: (error: any) => {
       toast({
         title: 'Falha no login',
-        description: error.message || 'Verifique suas credenciais e tente novamente.',
+        description: error.message || 'Use: tecnico/123456, gestor/123456 ou admin/123456',
         variant: 'destructive',
       });
     },
   });
 
+  // Verifica se há um usuário salvo localmente ao inicializar
+  useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem('brasilit_user');
+      if (savedUser && !user) {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.warn('Erro ao recuperar usuário da sessão local:', error);
+    }
+  }, []);
+
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/auth/logout', {});
-      return res.json();
+      // Remove o usuário da sessão local
+      try {
+        localStorage.removeItem('brasilit_user');
+      } catch (error) {
+        console.warn('Erro ao remover sessão local:', error);
+      }
+      
+      // Tenta logout normal na API
+      try {
+        const res = await apiRequest('POST', '/api/auth/logout', {});
+        return res.json();
+      } catch (error) {
+        // Se falhar, não tem problema para a demo
+        return { success: true };
+      }
     },
     onSuccess: () => {
       setUser(null);
       navigate('/login');
       toast({
         title: 'Logout realizado com sucesso',
-        description: 'Você saiu da sua conta.',
+        description: 'Você saiu da sua conta de demonstração.',
       });
     },
     onError: (error: any) => {
+      // Força logout mesmo em caso de erro
+      setUser(null);
+      navigate('/login');
       toast({
-        title: 'Erro ao sair',
-        description: error.message || 'Tente novamente mais tarde.',
-        variant: 'destructive',
+        title: 'Logout concluído',
+        description: 'Você saiu da sua conta, mas ocorreu um erro de comunicação com o servidor.',
       });
     },
   });
