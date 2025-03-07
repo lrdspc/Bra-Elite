@@ -147,7 +147,7 @@ const SettingsPage: React.FC = () => {
               Notificações
             </TabsTrigger>
             <TabsTrigger value="appearance">
-              <ColorPalette className="h-4 w-4 mr-2" />
+              <Palette className="h-4 w-4 mr-2" />
               Aparência
             </TabsTrigger>
             <TabsTrigger value="security">
