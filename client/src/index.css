@@ -4,8 +4,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Cores da Brasilit */
+    --brasilit-red: 358 85% 52%;        /* #EE1B24 - Vermelho principal */
+    --brasilit-yellow: 56 100% 50%;     /* #FFEB00 - Amarelo */
+    --brasilit-blue: 211 100% 31%;      /* #00529C - Azul */
+    
+    --background: 0 0% 100%;            /* Branco */
+    --foreground: 222.2 84% 4.9%;       /* Preto para texto */
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -13,35 +18,35 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 216 83% 50%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 358 85% 52%;             /* Vermelho Brasilit */
+    --primary-foreground: 0 0% 100%;    /* Branco */
 
-    --secondary: 36 100% 50%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 56 100% 50%;           /* Amarelo Brasilit */
+    --secondary-foreground: 222.2 84% 4.9%; /* Texto preto para fundo amarelo */
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 211 100% 31%;             /* Azul Brasilit */
+    --accent-foreground: 0 0% 100%;     /* Branco */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 216 83% 50%;
+    --ring: 358 85% 52%;                /* Vermelho Brasilit */
 
     --radius: 0.375rem;
     
     --success: 135 50% 43%;
     --success-foreground: 210 40% 98%;
     
-    --chart-1: 216 83% 50%;
-    --chart-2: 36 100% 50%;
-    --chart-3: 135 50% 43%;
-    --chart-4: 0 84.2% 60.2%;
-    --chart-5: 262 83% 58%;
+    --chart-1: 358 85% 52%;             /* Vermelho Brasilit */
+    --chart-2: 56 100% 50%;             /* Amarelo Brasilit */
+    --chart-3: 211 100% 31%;            /* Azul Brasilit */
+    --chart-4: 135 50% 43%;             /* Verde */
+    --chart-5: 262 83% 58%;             /* Roxo */
   }
 
   * {
@@ -83,4 +88,54 @@ textarea:focus {
 
 .animate-pulse-custom {
   animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Estilos da Brasilit */
+.bg-brasilit-red {
+  background-color: #EE1B24;
+  color: white;
+}
+
+.bg-brasilit-yellow {
+  background-color: #FFEB00;
+  color: black;
+}
+
+.bg-brasilit-blue {
+  background-color: #00529C;
+  color: white;
+}
+
+.text-brasilit-red {
+  color: #EE1B24;
+}
+
+.text-brasilit-yellow {
+  color: #FFEB00;
+}
+
+.text-brasilit-blue {
+  color: #00529C;
+}
+
+.border-brasilit-red {
+  border-color: #EE1B24;
+}
+
+/* Estilo para o cabeçalho da aplicação */
+.brasilit-header {
+  background-color: #EE1B24;
+  color: white;
+}
+
+/* Estilo para a barra de navegação inferior */
+.brasilit-navbar {
+  background-color: #FFEB00;
+  color: black;
+}
+
+/* Gradientes especiais para elementos da marca */
+.brasilit-gradient {
+  background: linear-gradient(110deg, #EE1B24 30%, #00529C 90%);
+  color: white;
 }
