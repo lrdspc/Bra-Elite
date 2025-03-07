@@ -2,99 +2,238 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#1A73E8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#EE1B24">
   <title>Você está offline - Brasilit Vistorias</title>
   <style>
-    body {
-      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    * {
       margin: 0;
       padding: 0;
-      background-color: #f8f9fa;
-      color: #202124;
+      box-sizing: border-box;
     }
-    .container {
+    
+    html, body {
+      height: 100%;
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
       display: flex;
       flex-direction: column;
+    }
+    
+    /* Melhorias para dispositivos com notch */
+    @supports (padding: max(0px)) {
+      body {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-top: env(safe-area-inset-top);
+      }
+    }
+    
+    /* Cabeçalho */
+    header {
+      background-color: #EE1B24;
+      color: white;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      padding: 20px;
+    }
+    
+    /* Conteúdo principal */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
       text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
     }
+    
+    /* Ilustração */
+    .illustration {
+      width: 200px;
+      height: 200px;
+      margin-bottom: 32px;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDI0IDI0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0VFMUIyNCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xNyAxNGwzIDNtMCAwbDMgM20tMyAtM2wzIC0zbS0zIDNsLTMgM20tMSAtNXYyYTIgMiAwIDAgMSAtMiAyaC0zYTIgMiAwIDAgMSAtMiAtMnYtM2EyIDIgMCAwIDEgMiAtMmgzYTIgMiAwIDAgMSAyIDJ2MnptLTkgNCBoLTFhMiAyIDAgMCAxIC0yIC0yVjdWNWEyIDIgMCAwIDEgMiAtMmgxMGEyIDIgMCAwIDEgMiAyVDcuNSIvPjwvc3ZnPg==');
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.8;
+    }
+    
+    /* Título */
     h1 {
-      font-size: 1.8rem;
-      font-weight: 500;
-      margin: 20px 0 10px;
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #333;
     }
+    
+    /* Texto */
     p {
       font-size: 1rem;
-      color: #5F6368;
-      margin: 10px 0;
-      max-width: 500px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+      color: #555;
     }
+    
+    /* Botão */
     .btn {
-      display: inline-block;
-      background-color: #1A73E8;
+      background-color: #EE1B24;
       color: white;
-      padding: 10px 20px;
-      border-radius: 4px;
-      font-weight: 500;
-      text-decoration: none;
-      margin-top: 20px;
+      padding: 12px 24px;
       border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s, transform 0.1s;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 8px;
     }
+    
     .btn:hover {
-      background-color: #1557b0;
+      background-color: #d81921;
     }
-    .icon-container {
-      margin-bottom: 10px;
+    
+    .btn:active {
+      transform: scale(0.98);
     }
-    .info-box {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-      margin-top: 20px;
-      width: 100%;
-      max-width: 500px;
+    
+    /* Status de conexão */
+    .connection-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 32px;
+      font-size: 0.875rem;
+      color: #666;
     }
-    .feature-list {
-      text-align: left;
-      padding-left: 20px;
+    
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #f59e0b;
+      margin-right: 8px;
     }
-    .feature-list li {
-      margin-bottom: 8px;
+    
+    /* Rodapé */
+    footer {
+      background-color: #FFEB00;
+      color: #333;
+      padding: 12px;
+      text-align: center;
+      font-size: 0.75rem;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.05);
+    }
+    
+    /* Animação de pulso */
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+      }
+      70% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.95);
+        opacity: 0.7;
+      }
+    }
+    
+    /* Animação de verificação */
+    .checking {
+      animation: rotate 1.5s infinite linear;
+      display: inline-block;
+    }
+    
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="icon-container">
-      <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 0H40C51.0457 0 60 8.95431 60 20C60 31.0457 51.0457 40 40 40H20C8.95431 40 0 31.0457 0 20C0 8.95431 8.95431 0 20 0Z" fill="#1A73E8"/>
-        <path d="M80 0H100C111.046 0 120 8.95431 120 20C120 31.0457 111.046 40 100 40H80C68.9543 40 60 31.0457 60 20C60 8.95431 68.9543 0 80 0Z" fill="#1A73E8"/>
-        <text x="15" y="25" font-size="16" font-weight="700" fill="white" font-family="Arial">BRASI</text>
-        <text x="75" y="25" font-size="16" font-weight="700" fill="white" font-family="Arial">LIT</text>
-      </svg>
-    </div>
+  <header>
+    <svg width="150" height="40" viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M25 0H50C64.7276 0 75 10.2724 75 25C75 39.7276 64.7276 50 50 50H25C10.2724 50 0 39.7276 0 25C0 10.2724 10.2724 0 25 0Z" fill="white"/>
+      <path d="M100 0H125C139.728 0 150 10.2724 150 25C150 39.7276 139.728 50 125 50H100C85.2724 50 75 39.7276 75 25C75 10.2724 85.2724 0 100 0Z" fill="white"/>
+      <text x="18.75" y="31.25" font-family="Arial" font-size="20" font-weight="700" fill="#EE1B24">BRASI</text>
+      <text x="93.75" y="31.25" font-family="Arial" font-size="20" font-weight="700" fill="#EE1B24">LIT</text>
+    </svg>
+  </header>
+  
+  <main>
+    <div class="illustration pulse"></div>
     
     <h1>Você está offline</h1>
-    <p>Não foi possível conectar à internet. Verificamos que você está no modo offline.</p>
     
-    <div class="info-box">
-      <h2>Funções disponíveis offline:</h2>
-      <ul class="feature-list">
-        <li>Visualizar vistorias salvas localmente</li>
-        <li>Criar novas vistorias (serão sincronizadas quando voltar online)</li>
-        <li>Capturar fotos e evidências</li>
-        <li>Acessar dados de clientes previamente carregados</li>
-      </ul>
+    <p>
+      Não foi possível conectar-se à internet. Verifique sua conexão e tente novamente.
+      <br><br>
+      No entanto, você pode continuar usando as funcionalidades offline do aplicativo.
+      Suas alterações serão sincronizadas automaticamente quando a conexão for restabelecida.
+    </p>
+    
+    <a href="/" class="btn">Tentar novamente</a>
+    
+    <div class="connection-status">
+      <span class="status-indicator"></span>
+      <span id="status-text">Verificando conexão... <span class="checking">↻</span></span>
     </div>
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Brasilit - Saint-Gobain. Todos os direitos reservados.</p>
+  </footer>
+  
+  <script>
+    // Verificar status de conexão
+    function updateConnectionStatus() {
+      const statusIndicator = document.querySelector('.status-indicator');
+      const statusText = document.getElementById('status-text');
+      
+      if (navigator.onLine) {
+        statusIndicator.style.backgroundColor = '#10b981';
+        statusText.innerHTML = 'Conexão restabelecida. Redirecionando...';
+        
+        // Espere um momento e depois redirecione
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+      } else {
+        statusIndicator.style.backgroundColor = '#f59e0b';
+        statusText.innerHTML = 'Você está offline <span class="checking">↻</span>';
+      }
+    }
     
-    <button class="btn" onclick="window.location.reload()">Tentar novamente</button>
-  </div>
+    // Verificar inicialmente
+    updateConnectionStatus();
+    
+    // Adicionar ouvintes de eventos para mudanças de status de conexão
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+    
+    // Verificar periodicamente
+    setInterval(updateConnectionStatus, 5000);
+  </script>
 </body>
 </html>

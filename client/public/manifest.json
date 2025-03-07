@@ -1,24 +1,57 @@
 {
   "name": "Brasilit Vistorias Técnicas",
   "short_name": "Brasilit",
-  "description": "Sistema de Vistorias Técnicas da Brasilit",
-  "start_url": "/",
+  "description": "Sistema de Vistorias Técnicas da Brasilit - Saint-Gobain",
+  "start_url": "/?source=pwa",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#ffffff",
-  "theme_color": "#1A73E8",
-  "orientation": "portrait-primary",
+  "theme_color": "#EE1B24",
+  "orientation": "any",
+  "scope": "/",
+  "categories": ["business", "productivity", "utilities"],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
   "icons": [
     {
       "src": "brasilit-icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "brasilit-icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "brasilit-icon-192-maskable.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "brasilit-icon-512-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-narrow.jpg",
+      "sizes": "540x1200",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshot-wide.jpg",
+      "sizes": "1200x800",
+      "type": "image/jpeg",
+      "form_factor": "wide"
     }
   ],
   "shortcuts": [
@@ -26,15 +59,38 @@
       "name": "Nova Vistoria",
       "short_name": "Nova Vistoria",
       "description": "Iniciar uma nova vistoria técnica",
-      "url": "/inspection/new",
-      "icons": [{ "src": "brasilit-icon-192.svg", "sizes": "192x192" }]
+      "url": "/inspection/new?source=shortcut",
+      "icons": [{ "src": "shortcut-inspection.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Minhas Vistorias",
+      "short_name": "Vistorias",
+      "description": "Ver minhas vistorias em andamento e finalizadas",
+      "url": "/inspections?source=shortcut",
+      "icons": [{ "src": "shortcut-list.svg", "sizes": "192x192" }]
     },
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Visualizar dashboard de vistorias",
-      "url": "/",
-      "icons": [{ "src": "brasilit-icon-192.svg", "sizes": "192x192" }]
+      "url": "/?source=shortcut",
+      "icons": [{ "src": "shortcut-dashboard.svg", "sizes": "192x192" }]
+    }
+  ],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "auto",
+  "file_handlers": [
+    {
+      "action": "/open-inspection",
+      "accept": {
+        "application/brasilit-inspection": [".brinsp"]
+      }
     }
   ]
 }

@@ -2,25 +2,122 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1A73E8" />
-    <meta name="description" content="Sistema Brasilit para Vistorias Técnicas" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#EE1B24" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Sistema Brasilit para Vistorias Técnicas - Uma ferramenta para profissionais realizarem inspeções e vistorias técnicas da Saint-Gobain Brasilit" />
+    <meta name="application-name" content="Brasilit Vistorias" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Brasilit" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Ícones e Imagens -->
     <link rel="icon" type="image/svg+xml" href="/brasilit-icon-192.svg" />
     <link rel="apple-touch-icon" href="/brasilit-icon-192.svg" />
+    <link rel="mask-icon" href="/brasilit-icon-192.svg" color="#EE1B24" />
+    
+    <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Prevenção de Cache para Service Worker -->
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    
+    <!-- Fontes Otimizadas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet" />
+    
+    <!-- Telas de inicialização para dispositivos Apple -->
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1242-2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-828-1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
+    
+    <!-- Título -->
     <title>Brasilit Vistorias Técnicas</title>
+    
+    <!-- Estilos para proporcionar uma melhor experiência durante o carregamento -->
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', sans-serif;
+        background-color: #fff;
+        overscroll-behavior: none;
+        overflow-x: hidden;
+      }
+      
+      /* Melhorias para dispositivos com notch */
+      @supports (padding: max(0px)) {
+        body {
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+          padding-bottom: env(safe-area-inset-bottom);
+          padding-top: env(safe-area-inset-top);
+        }
+      }
+      
+      #root {
+        height: 100%;
+      }
+      
+      .app-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: #fff;
+        z-index: 9999;
+      }
+      
+      .app-loading-logo {
+        animation: pulse 1.5s infinite ease-in-out;
+      }
+      
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Tela de carregamento inicial -->
+      <div class="app-loading">
+        <svg width="180" height="60" viewBox="0 0 180 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="app-loading-logo">
+          <path d="M30 0H60C77.6731 0 90 12.3269 90 30C90 47.6731 77.6731 60 60 60H30C12.3269 60 0 47.6731 0 30C0 12.3269 12.3269 0 30 0Z" fill="#EE1B24"/>
+          <path d="M120 0H150C167.673 0 180 12.3269 180 30C180 47.6731 167.673 60 150 60H120C102.327 60 90 47.6731 90 30C90 12.3269 102.327 0 120 0Z" fill="#EE1B24"/>
+          <text x="22.5" y="37.5" font-family="Arial" font-size="24" font-weight="700" fill="white">BRASI</text>
+          <text x="112.5" y="37.5" font-family="Arial" font-size="24" font-weight="700" fill="white">LIT</text>
+        </svg>
+        <div style="width: 200px; height: 4px; background-color: #f0f0f0; border-radius: 4px; margin-top: 30px; overflow: hidden; position: relative;">
+          <div style="width: 50px; height: 100%; background-color: #EE1B24; position: absolute; left: -50px; animation: loading 1.5s infinite linear;"></div>
+        </div>
+      </div>
+    </div>
+    
     <script type="module" src="/src/main.tsx"></script>
 
+    <!-- Mensagem para usuários com JavaScript desativado -->
     <noscript>
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 0 1rem;">
         <svg width="180" height="60" viewBox="0 0 180 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M30 0H60C77.6731 0 90 12.3269 90 30C90 47.6731 77.6731 60 60 60H30C12.3269 60 0 47.6731 0 30C0 12.3269 12.3269 0 30 0Z" fill="#1A73E8"/>
-          <path d="M120 0H150C167.673 0 180 12.3269 180 30C180 47.6731 167.673 60 150 60H120C102.327 60 90 47.6731 90 30C90 12.3269 102.327 0 120 0Z" fill="#1A73E8"/>
+          <path d="M30 0H60C77.6731 0 90 12.3269 90 30C90 47.6731 77.6731 60 60 60H30C12.3269 60 0 47.6731 0 30C0 12.3269 12.3269 0 30 0Z" fill="#EE1B24"/>
+          <path d="M120 0H150C167.673 0 180 12.3269 180 30C180 47.6731 167.673 60 150 60H120C102.327 60 90 47.6731 90 30C90 12.3269 102.327 0 120 0Z" fill="#EE1B24"/>
           <text x="22.5" y="37.5" font-family="Arial" font-size="24" font-weight="700" fill="white">BRASI</text>
           <text x="112.5" y="37.5" font-family="Arial" font-size="24" font-weight="700" fill="white">LIT</text>
         </svg>
@@ -28,5 +125,13 @@
         <p style="margin-top: 1rem; color: #5F6368; font-family: 'Roboto', sans-serif;">É necessário habilitar o JavaScript para utilizar esta aplicação.</p>
       </div>
     </noscript>
+    
+    <!-- Estilos de animação para o carregamento inicial -->
+    <style>
+      @keyframes loading {
+        0% { left: -50px; }
+        100% { left: 100%; }
+      }
+    </style>
   </body>
 </html>
