@@ -19,6 +19,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [, navigate] = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobile = useMobile();
+  // Estado para verificar o status online/offline
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   // Ensure user is authenticated
   useEffect(() => {
@@ -26,21 +28,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       navigate('/login');
     }
   }, [isLoading, isLoggedIn, navigate]);
-
-  const toggleMobileSidebar = () => {
-    setMobileSidebarOpen(!mobileSidebarOpen);
-  };
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-  
-  if (!isLoggedIn || !user) {
-    return null; // Will redirect to login via the useEffect
-  }
-
-  // Estado para verificar o status online/offline
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   // Monitorar o status de conexão
   useEffect(() => {
@@ -55,6 +42,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  const toggleMobileSidebar = () => {
+    setMobileSidebarOpen(!mobileSidebarOpen);
+  };
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  
+  if (!isLoggedIn || !user) {
+    return null; // Will redirect to login via the useEffect
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
