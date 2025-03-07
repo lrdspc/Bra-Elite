@@ -1,0 +1,418 @@
+# EspecificaÃ§Ã£o TÃ©cnica Detalhada: Sistema PWA Brasilit para Vistorias TÃ©cnicas
+
+## 1. Arquitetura do Sistema e Interfaces
+
+### 1.1 VersÃµes da AplicaÃ§Ã£o e DiferenciaÃ§Ã£o
+
+#### VersÃ£o Mobile (Smartphones e Tablets)
+- **PropÃ³sito primÃ¡rio**: Coleta de dados em campo, registro fotogrÃ¡fico, preenchimento guiado
+- **CaracterÃ­sticas especÃ­ficas**:
+  * Interface simplificada com elementos maiores para toque
+  * Acesso Ã  cÃ¢mera para captura direta de evidÃªncias
+  * IntegraÃ§Ã£o com GPS para geolocalizaÃ§Ã£o automÃ¡tica das visitas
+  * OtimizaÃ§Ã£o para entrada de dados sequencial (formulÃ¡rio passo-a-passo)
+  * Modo offline completo com persistÃªncia local
+  * Registro automÃ¡tico de timestamps (inÃ­cio/fim da vistoria)
+  * Interface de voz para anotaÃ§Ãµes rÃ¡pidas (opcional)
+
+#### VersÃ£o Desktop
+- **PropÃ³sito primÃ¡rio**: Planejamento, anÃ¡lise de dados, geraÃ§Ã£o de relatÃ³rios, gestÃ£o
+- **CaracterÃ­sticas especÃ­ficas**:
+  * Layout expandido para visualizaÃ§Ã£o de mais informaÃ§Ãµes simultaneamente
+  * Interface completa de calendÃ¡rio para agendamento
+  * Ferramentas avanÃ§adas de ediÃ§Ã£o de texto nas observaÃ§Ãµes tÃ©cnicas
+  * VisualizaÃ§Ã£o de dashboard com KPIs e mÃ©tricas detalhadas
+  * Interface para revisÃ£o e ediÃ§Ã£o de relatÃ³rios antes da finalizaÃ§Ã£o
+  * Ferramentas de anÃ¡lise comparativa entre mÃºltiplas visitas
+  * OpÃ§Ãµes expandidas de exportaÃ§Ã£o e compartilhamento
+
+### 1.2 Estrutura de NavegaÃ§Ã£o e Menus
+
+#### NavegaÃ§Ã£o Mobile
+- **Menu inferior com acesso rÃ¡pido a**:
+  * Dashboard simplificado
+  * Nova vistoria
+  * Vistorias em andamento
+  * Clientes
+  * Perfil/configuraÃ§Ãµes
+
+#### NavegaÃ§Ã£o Desktop
+- **Menu lateral com seÃ§Ãµes**:
+  * Dashboard completo
+  * CalendÃ¡rio de visitas
+  * Gerenciamento de clientes
+  * Gerenciamento de empreendimentos
+  * Biblioteca de vistorias (filtros avanÃ§ados)
+  * RelatÃ³rios e anÃ¡lises
+  * ConfiguraÃ§Ãµes do sistema
+  * Perfil e preferÃªncias do usuÃ¡rio
+
+## 2. Fluxos de Trabalho Detalhados
+
+### 2.1 Cadastro e Gerenciamento de Clientes
+
+#### Fluxo Desktop
+1. **Acesso Ã  seÃ§Ã£o "Clientes"**
+   - VisualizaÃ§Ã£o em tabela paginada com opÃ§Ãµes de filtragem e busca
+   - BotÃ£o "Novo Cliente" em destaque
+
+2. **FormulÃ¡rio de cadastro completo**
+   - Campos para informaÃ§Ãµes completas (razÃ£o social, CNPJ/CPF, contatos)
+   - SeÃ§Ã£o de endereÃ§o com CEP autocompletÃ¡vel
+   - OpÃ§Ã£o de upload de documentos relevantes
+   - Campos personalizÃ¡veis para informaÃ§Ãµes adicionais
+
+3. **VisualizaÃ§Ã£o de detalhes**
+   - PÃ¡gina dedicada para cada cliente
+   - HistÃ³rico de visitas realizadas
+   - Empreendimentos vinculados
+   - Notas e observaÃ§Ãµes
+
+#### Fluxo Mobile
+1. **Acesso simplificado aos clientes recentes**
+   - Lista com busca por nome/cÃ³digo
+   - BotÃ£o "+" para cadastro rÃ¡pido
+
+2. **FormulÃ¡rio simplificado**
+   - Campos essenciais (nome, telefone, email)
+   - OpÃ§Ã£o "Completar depois" para dados nÃ£o essenciais
+   - Preenchimento automÃ¡tico por geolocalizaÃ§Ã£o para endereÃ§o
+
+3. **Perfil cliente simplificado**
+   - Card com informaÃ§Ãµes essenciais
+   - AÃ§Ãµes rÃ¡pidas (ligar, enviar email, iniciar vistoria)
+
+### 2.2 Agendamento e GestÃ£o de Visitas
+
+#### Fluxo Desktop
+1. **CriaÃ§Ã£o via calendÃ¡rio**
+   - Interface de calendÃ¡rio com visualizaÃ§Ã£o mensal/semanal/diÃ¡ria
+   - OpÃ§Ã£o de arrastar e soltar para definir horÃ¡rios
+   - VisualizaÃ§Ã£o de disponibilidade de tÃ©cnicos
+
+2. **FormulÃ¡rio de agendamento**
+   - SeleÃ§Ã£o de cliente (com busca inteligente)
+   - SeleÃ§Ã£o de empreendimento ou opÃ§Ã£o para criar novo
+   - DefiniÃ§Ã£o de data/hora com validaÃ§Ã£o de conflitos
+   - Campo para assunto/motivo da vistoria (categorizado)
+   - GeraÃ§Ã£o automÃ¡tica de protocolo/FAR (TST-timestamp)
+   - OpÃ§Ãµes para envio automÃ¡tico de lembretes
+
+3. **VisualizaÃ§Ã£o e gestÃ£o**
+   - Filtros avanÃ§ados por perÃ­odo, status, tÃ©cnico, regiÃ£o
+   - ExportaÃ§Ã£o de agendamentos para calendÃ¡rio externo
+   - Dashboard especÃ­fico de produtividade por tÃ©cnico
+
+#### Fluxo Mobile
+1. **VisÃ£o simplificada de agenda**
+   - Lista de prÃ³ximas visitas do dia/semana
+   - Indicadores visuais de status e prioridade
+   - Pull-to-refresh para atualizaÃ§Ã£o
+
+2. **Agendamento rÃ¡pido**
+   - OpÃ§Ã£o de agendar a partir do perfil do cliente
+   - Templates prÃ©-configurados para tipos comuns de visitas
+   - OpÃ§Ã£o de reagendamento com notificaÃ§Ã£o automÃ¡tica
+
+3. **IniciaÃ§Ã£o de vistoria**
+   - BotÃ£o de destaque "Iniciar Vistoria" na tela de detalhes
+   - ConfirmaÃ§Ã£o de chegada com registro automÃ¡tico de:
+     * Timestamp de inÃ­cio
+     * Coordenadas GPS
+     * CondiÃ§Ãµes climÃ¡ticas (via API de clima)
+
+### 2.3 Processo de Vistoria em Campo (Mobile)
+
+1. **IniciaÃ§Ã£o da vistoria**
+   - **Tela de carregamento rÃ¡pido com**:
+     * Dados do cliente jÃ¡ preenchidos (nome, telefone, endereÃ§o)
+     * Dados do empreendimento automaticamente importados
+     * Registro automÃ¡tico de data, hora e localizaÃ§Ã£o GPS
+     * BotÃ£o "Iniciar Vistoria" em destaque
+
+2. **Fluxo guiado por etapas (swipe horizontal)**
+   - **Etapa 1: ConfirmaÃ§Ã£o de dados bÃ¡sicos**
+     * VerificaÃ§Ã£o visual de dados do cliente/empreendimento
+     * Campos para ajustes rÃ¡pidos se necessÃ¡rio
+     * ValidaÃ§Ã£o de endereÃ§o com mapa interativo
+   
+   - **Etapa 2: Dados do produto instalado**
+     * SeleÃ§Ã£o de modelo de telha (com imagens)
+     * Campo numÃ©rico para quantidade e Ã¡rea
+     * Data aproximada de instalaÃ§Ã£o (picker)
+     * Upload de nota fiscal ou documento de compra (opcional)
+   
+   - **Etapa 3: AnÃ¡lise tÃ©cnica guiada**
+     * Checklist interativo das 14 nÃ£o-conformidades padrÃ£o
+     * Para cada item selecionado:
+       - DescriÃ§Ã£o detalhada da nÃ£o-conformidade
+       - BotÃ£o para captura de foto diretamente
+       - Campo para observaÃ§Ãµes especÃ­ficas
+       - Indicador visual de severidade
+     * ValidaÃ§Ã£o para garantir documentaÃ§Ã£o suficiente
+
+   - **Etapa 4: Captura de evidÃªncias adicionais**
+     * Grid de miniaturas das fotos jÃ¡ capturadas
+     * OpÃ§Ã£o para adicionar mais fotos/vÃ­deos
+     * CategorizaÃ§Ã£o visual por tipo de nÃ£o-conformidade
+     * Ferramenta de anotaÃ§Ã£o sobre imagens
+
+   - **Etapa 5: ConclusÃ£o e avaliaÃ§Ã£o**
+     * SeleÃ§Ã£o de conclusÃ£o (procedente/improcedente)
+     * Campo de justificativa (com sugestÃµes baseadas nos itens selecionados)
+     * Checklist de recomendaÃ§Ãµes ao cliente
+     * Assinatura digital do cliente (opcional)
+
+3. **FinalizaÃ§Ã£o da vistoria**
+   - **Tela de confirmaÃ§Ã£o com**:
+     * Resumo dos itens documentados
+     * Registro automÃ¡tico de timestamp de finalizaÃ§Ã£o
+     * CÃ¡lculo automÃ¡tico de duraÃ§Ã£o da vistoria
+     * OpÃ§Ã£o para sincronizaÃ§Ã£o imediata ou posterior
+     * BotÃ£o para gerar prÃ©-visualizaÃ§Ã£o do relatÃ³rio
+
+### 2.4 AnÃ¡lise e EdiÃ§Ã£o PÃ³s-Campo (Desktop)
+
+1. **Acesso Ã s vistorias pendentes de revisÃ£o**
+   - Lista filtrada por "ConcluÃ­das em campo"
+   - Indicadores visuais de prioridade/urgÃªncia
+   - VisualizaÃ§Ã£o rÃ¡pida de dados essenciais
+
+2. **Interface de revisÃ£o completa**
+   - FormulÃ¡rio expandido com todos os dados coletados
+   - Painel lateral de navegaÃ§Ã£o entre seÃ§Ãµes
+   - Ferramenta de ediÃ§Ã£o avanÃ§ada para texto tÃ©cnico
+   - Visualizador de imagens com opÃ§Ãµes de ediÃ§Ã£o bÃ¡sica
+   - ValidaÃ§Ã£o de completude e consistÃªncia dos dados
+
+3. **PreparaÃ§Ã£o do relatÃ³rio**
+   - PrÃ©-visualizaÃ§Ã£o em formato de documento
+   - OpÃ§Ãµes para inclusÃ£o/exclusÃ£o seletiva de imagens
+   - Ferramentas de formataÃ§Ã£o especÃ­fica
+   - Campos para aprovaÃ§Ã£o tÃ©cnica e revisÃ£o de qualidade
+
+### 2.5 GeraÃ§Ã£o e GestÃ£o de RelatÃ³rios
+
+1. **Processo de geraÃ§Ã£o**
+   - BotÃ£o "Gerar RelatÃ³rio Final" apÃ³s revisÃ£o completa
+   - SeleÃ§Ã£o de template (padrÃ£o Brasilit)
+   - Processamento do documento com barra de progresso
+   - VerificaÃ§Ã£o final automÃ¡tica de consistÃªncia
+
+2. **OpÃ§Ãµes de compartilhamento**
+   - ExportaÃ§Ã£o nos formatos DOCX e PDF
+   - Envio direto por email (com template de mensagem)
+   - Compartilhamento via link seguro temporÃ¡rio
+   - IntegraÃ§Ã£o com sistemas corporativos via API
+
+3. **Biblioteca de relatÃ³rios**
+   - RepositÃ³rio centralizado de todos os relatÃ³rios gerados
+   - Metadados para busca avanÃ§ada
+   - Controle de versÃµes (caso haja atualizaÃ§Ãµes)
+   - EstatÃ­sticas de visualizaÃ§Ã£o/download
+
+## 3. Interfaces e Telas Principais (Detalhamento)
+
+### 3.1 Dashboard Principal (Desktop)
+
+- **SeÃ§Ã£o superior: KPIs e mÃ©tricas**
+  * Total de vistorias (perÃ­odo selecionÃ¡vel)
+  * Tempo mÃ©dio de atendimento
+  * Taxa de procedÃªncia/improcedÃªncia
+  * Produtividade por tÃ©cnico
+  * Indicador de pendÃªncias
+
+- **SeÃ§Ã£o central: VisualizaÃ§Ãµes grÃ¡ficas**
+  * GrÃ¡fico de linha: TendÃªncia de vistorias por semana/mÃªs
+  * GrÃ¡fico de barras: DistribuiÃ§Ã£o por tipo de assunto
+  * Mapa de calor: ConcentraÃ§Ã£o geogrÃ¡fica de atendimentos
+  * GrÃ¡fico de pizza: DistribuiÃ§Ã£o de nÃ£o-conformidades
+
+- **SeÃ§Ã£o inferior: AÃ§Ãµes prioritÃ¡rias**
+  * Lista de vistorias pendentes de hoje/amanhÃ£
+  * Alertas de atrasos ou pendÃªncias
+  * Acesso rÃ¡pido a relatÃ³rios recentes
+
+### 3.2 Dashboard Mobile
+
+- **Card principal: Resumo do dia**
+  * Contagem de vistorias agendadas/realizadas hoje
+  * PrÃ³xima vistoria com contagem regressiva
+  * BotÃ£o destacado para iniciar vistoria programada
+
+- **SeÃ§Ã£o de mÃ©tricas simplificadas**
+  * Vistorias da semana (com indicador de progresso)
+  * Tempo mÃ©dio de atendimento recente
+  * Ãšltimos relatÃ³rios gerados
+
+- **Acesso rÃ¡pido**
+  * Mapa das visitas do dia
+  * Lista de pendÃªncias urgentes
+  * SincronizaÃ§Ã£o de dados offline
+
+### 3.3 FormulÃ¡rio de Vistoria Passo-a-Passo (Mobile)
+
+- **NavegaÃ§Ã£o intuitiva**
+  * Indicador de progresso na parte superior
+  * BotÃµes "Anterior" e "PrÃ³ximo" para navegaÃ§Ã£o
+  * Salvar automaticamente a cada etapa
+
+- **Design adaptativo por tipo de entrada**
+  * Campos grandes e espaÃ§ados para facilitar toque
+  * Teclados especÃ­ficos por tipo de dado (numÃ©rico, texto)
+  * Autocompletamento sempre que possÃ­vel
+
+- **Feedback visual constante**
+  * Indicadores de validaÃ§Ã£o em tempo real
+  * Mensagens claras de erro/sucesso
+  * IndicaÃ§Ã£o de campos obrigatÃ³rios nÃ£o preenchidos
+
+### 3.4 Sistema de Captura de EvidÃªncias (Mobile)
+
+- **Interface da cÃ¢mera integrada**
+  * SobreposiÃ§Ã£o com indicaÃ§Ã£o do tipo de evidÃªncia
+  * OpÃ§Ã£o para flash, HDR, etc.
+  * BotÃ£o de captura amplo e responsivo
+
+- **OrganizaÃ§Ã£o automatizada**
+  * CategorizaÃ§Ã£o imediata por tipo de nÃ£o-conformidade
+  * Thumbnails com preview em grid
+  * OpÃ§Ãµes para reorganizar e recategorizar
+
+- **Ferramentas de anotaÃ§Ã£o**
+  * MarcaÃ§Ã£o direta sobre a imagem (setas, cÃ­rculos)
+  * AdiÃ§Ã£o de texto explicativo
+  * MediÃ§Ã£o bÃ¡sica de distÃ¢ncias/Ã¡reas
+
+## 4. Fluxo de Dados e PersistÃªncia
+
+### 4.1 SincronizaÃ§Ã£o Cliente-Servidor
+
+- **EstratÃ©gia offline-first**
+  * Armazenamento primÃ¡rio em IndexedDB local
+  * Fila de sincronizaÃ§Ã£o para operaÃ§Ãµes pendentes
+  * Indicadores claros de status de sincronizaÃ§Ã£o
+
+- **PriorizaÃ§Ã£o inteligente**
+  * SincronizaÃ§Ã£o imediata de dados crÃ­ticos quando hÃ¡ conexÃ£o
+  * Upload gradual de imagens em segundo plano
+  * CompressÃ£o adaptativa baseada na qualidade da conexÃ£o
+
+- **ResoluÃ§Ã£o de conflitos**
+  * EstratÃ©gia baseada em timestamps e versÃµes
+  * NotificaÃ§Ã£o ao usuÃ¡rio em caso de conflitos crÃ­ticos
+  * Log detalhado de alteraÃ§Ãµes e sincronizaÃ§Ãµes
+
+### 4.2 Modelo de Dados Detalhado
+
+- **Relacionamentos**
+  * Cliente 1:N Empreendimentos
+  * Empreendimento 1:N Visitas
+  * Visita 1:1 RelatÃ³rio
+  * Visita N:M NÃ£o-conformidades
+  * NÃ£o-conformidade 1:N EvidÃªncias
+
+- **TransferÃªncia entre telas**
+  * Ao selecionar cliente: preenche automaticamente dados de contato
+  * Ao selecionar empreendimento: preenche endereÃ§o e tipo
+  * Ao iniciar vistoria: importa todos os dados anteriores
+  * Timestamp automÃ¡tico no inÃ­cio/fim gera duraÃ§Ã£o
+
+### 4.3 GeraÃ§Ã£o AutomÃ¡tica de Documentos
+
+- **ManipulaÃ§Ã£o programÃ¡tica do template**
+  * Template DOCX com marcadores especÃ­ficos para substituiÃ§Ã£o
+  * Estrutura idÃªntica ao modelo fornecido pela Brasilit
+  * Processamento via docx.js ou biblioteca equivalente
+
+- **Mapeamento de dados para documento**
+  * SubstituiÃ§Ã£o automÃ¡tica de variÃ¡veis no template
+  * GeraÃ§Ã£o da lista numerada de nÃ£o-conformidades
+  * InserÃ§Ã£o de imagens em tamanho e posiÃ§Ã£o padronizados
+  * FormataÃ§Ã£o consistente de datas, nÃºmeros e textos
+
+- **ValidaÃ§Ã£o prÃ©-geraÃ§Ã£o**
+  * VerificaÃ§Ã£o automÃ¡tica de completude dos dados
+  * Alerta para inconsistÃªncias ou omissÃµes crÃ­ticas
+  * Preview em tempo real do documento final
+
+## 5. ConsideraÃ§Ãµes de ImplementaÃ§Ã£o
+
+### 5.1 Aspectos TÃ©cnicos CrÃ­ticos
+
+- **Gerenciamento de armazenamento em dispositivos mÃ³veis**
+  * CompressÃ£o eficiente de imagens (75% qualidade = ~70% reduÃ§Ã£o)
+  * Limpeza automÃ¡tica de dados temporÃ¡rios
+  * Alerta ao usuÃ¡rio sobre espaÃ§o necessÃ¡rio
+
+- **Performance em dispositivos diversos**
+  * CÃ³digo otimizado para dispositivos de baixo desempenho
+  * Carregamento progressivo de imagens e dados pesados
+  * Lazy loading de componentes menos crÃ­ticos
+
+- **Compatibilidade entre plataformas**
+  * Testes em iOS e Android para garantir funcionamento
+  * AdaptaÃ§Ã£o a diferentes tamanhos de tela e densidades
+  * Fallbacks para recursos nÃ£o disponÃ­veis em algumas plataformas
+
+### 5.2 Usabilidade e ExperiÃªncia do UsuÃ¡rio
+
+- **Treinamento e onboarding**
+  * Tour guiado na primeira utilizaÃ§Ã£o
+  * Tooltips contextuais para funÃ§Ãµes complexas
+  * DocumentaÃ§Ã£o embutida acessÃ­vel a qualquer momento
+
+- **Acessibilidade**
+  * Suporte a leitor de tela e navegaÃ§Ã£o por teclado
+  * Contraste adequado e fontes redimensionÃ¡veis
+  * Alternativas textuais para elementos visuais
+
+- **Feedback constante**
+  * ConfirmaÃ§Ãµes visuais para aÃ§Ãµes importantes
+  * Indicadores de progresso para operaÃ§Ãµes longas
+  * NotificaÃ§Ãµes para eventos relevantes (sincronizaÃ§Ã£o, geraÃ§Ã£o)
+
+## 6. Fluxos EspecÃ­ficos e IntegraÃ§Ãµes
+
+### 6.1 IntegraÃ§Ã£o GPS e Registro Temporal
+
+- Ao iniciar vistoria no mobile:
+  1. Sistema captura automaticamente: 
+     * Coordenadas GPS precisas
+     * Data e hora exatas
+     * IdentificaÃ§Ã£o do dispositivo
+  2. Dados sÃ£o vinculados permanentemente ao registro da visita
+  3. Interface mostra confirmaÃ§Ã£o visual da localizaÃ§Ã£o capturada
+  4. OpÃ§Ã£o para atualizar manualmente se necessÃ¡rio
+
+- Ao finalizar vistoria:
+  1. Novo registro de timestamp de conclusÃ£o
+  2. CÃ¡lculo automÃ¡tico de duraÃ§Ã£o total
+  3. ValidaÃ§Ã£o de consistÃªncia (alerta se duraÃ§Ã£o for anormalmente curta)
+  4. Dados transferidos para dashboard de produtividade
+
+### 6.2 Fluxo de RevisÃ£o e AprovaÃ§Ã£o
+
+1. TÃ©cnico conclui vistoria em campo (mobile)
+2. Status muda para "ConcluÃ­da - Pendente RevisÃ£o"
+3. Sistema notifica (email/push) sobre necessidade de revisÃ£o
+4. Supervisor acessa via desktop para revisÃ£o completa
+5. OpÃ§Ãµes de aÃ§Ã£o:
+   - Aprovar diretamente â†’ gera relatÃ³rio
+   - Solicitar correÃ§Ãµes â†’ notifica tÃ©cnico
+   - Editar diretamente â†’ salva nova versÃ£o
+6. ApÃ³s aprovaÃ§Ã£o, status muda para "RelatÃ³rio Gerado"
+7. Sistema registra metadados de aprovaÃ§Ã£o (quem, quando)
+
+### 6.3 TransmissÃ£o e Uso Entre Dispositivos
+
+- **CenÃ¡rio de uso mÃºltiplo**:
+  1. TÃ©cnico inicia cadastro de cliente no desktop
+  2. Agenda visita para o dia seguinte
+  3. SincronizaÃ§Ã£o automÃ¡tica envia dados para dispositivo mobile
+  4. No dia seguinte, tÃ©cnico vÃª visita agendada no mobile
+  5. Realiza vistoria completa em campo com todos os dados prÃ©-carregados
+  6. Finaliza e sincroniza quando hÃ¡ conexÃ£o
+  7. De volta ao escritÃ³rio, acessa desktop para revisÃ£o final e geraÃ§Ã£o do relatÃ³rio
+
+Esta especificaÃ§Ã£o detalhada cobre todos os aspectos do sistema, com Ãªnfase especial nos fluxos entre diferentes interfaces, na captura e transferÃªncia de dados entre componentes, e no processo completo que vai desde o cadastro inicial atÃ© a geraÃ§Ã£o do relatÃ³rio final no formato idÃªntico ao documento modelo da Brasilit.
