@@ -9,6 +9,13 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
 
+// Extende a interface SessionData para incluir o usuário de demonstração
+declare module 'express-session' {
+  interface SessionData {
+    demoUser?: string;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session setup
   const MemoryStoreSession = MemoryStore(session);
@@ -62,11 +69,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Usuários de demonstração para verificação de sessão pelo frontend
+  const demoUsers = [
+    {
+      id: 1,
+      username: 'tecnico',
+      name: 'João da Silva',
+      email: 'joao.silva@brasilit.com.br',
+      role: 'tecnico',
+      avatar: '/avatars/tecnico.png'
+    },
+    {
+      id: 2,
+      username: 'gestor',
+      name: 'Maria Souza',
+      email: 'maria.souza@brasilit.com.br',
+      role: 'gestor',
+      avatar: '/avatars/gestor.png'
+    },
+    {
+      id: 3,
+      username: 'admin',
+      name: 'Carlos Oliveira',
+      email: 'carlos.oliveira@brasilit.com.br',
+      role: 'admin',
+      avatar: '/avatars/admin.png'
+    }
+  ];
+
   // Auth middleware
   const isAuthenticated = (req: Request, res: Response, next: any) => {
+    // Verificar se é um usuário de demonstração
+    if (req.session.demoUser) {
+      return next();
+    }
+    
+    // Verificar autenticação normal
     if (req.isAuthenticated()) {
       return next();
     }
+    
     res.status(401).json({ message: "Unauthorized" });
   };
   
@@ -75,6 +117,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = loginSchema.parse(req.body);
       
+      // Verificar se é um login de demonstração
+      const demoUser = demoUsers.find(user => 
+        user.username === username && password === '123456'
+      );
+      
+      if (demoUser) {
+        // Se for um usuário de demonstração, armazena na sessão e retorna os dados
+        req.session.demoUser = demoUser.username;
+        return res.json(demoUser);
+      }
+      
+      // Se não for usuário de demonstração, tenta autenticação normal
       passport.authenticate("local", (err: any, user: any, info: any) => {
         if (err) {
           return next(err);
@@ -105,6 +159,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.post("/api/auth/logout", (req, res) => {
+    // Remover usuário de demonstração da sessão, se existir
+    if (req.session.demoUser) {
+      delete req.session.demoUser;
+    }
+    
+    // Logout normal do passport
     req.logout((err) => {
       if (err) {
         return res.status(500).json({ message: "Error during logout" });
@@ -114,6 +174,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.get("/api/auth/session", (req, res) => {
+    // Check for demo user in the session
+    const sessionUser = req.session.demoUser;
+    if (sessionUser) {
+      // Se há um usuário de demonstração na sessão, retorna seus dados
+      const demoUser = demoUsers.find(u => u.username === sessionUser);
+      if (demoUser) {
+        return res.json(demoUser);
+      }
+    }
+    
+    // Se não há usuário de demonstração, verifica autenticação normal
     if (req.isAuthenticated()) {
       const user = req.user as any;
       return res.json({
@@ -125,6 +196,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         avatar: user.avatar
       });
     }
+    
+    // Nenhuma autenticação encontrada
     res.status(401).json({ message: "Not authenticated" });
   });
   
