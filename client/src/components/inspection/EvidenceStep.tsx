@@ -579,15 +579,20 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
             <div className="flex flex-col md:flex-row gap-4">
               <div className="md:flex-1">
                 <div 
-                  className="rounded-md overflow-hidden relative"
+                  className={`rounded-md overflow-hidden relative ${isAnnotating ? 'annotating-mode' : ''}`}
                   ref={imageContainerRef}
                   onClick={handleImageClick}
+                  onDragStart={(e) => isAnnotating && e.preventDefault()}
+                  onMouseMove={(e) => isAnnotating && e.preventDefault()}
                 >
                   {/* Layer de imagem (base) */}
                   <img 
                     src={selectedImage.url} 
                     alt="Evidência" 
                     className="w-full h-auto max-h-[70vh] object-contain"
+                    draggable="false"
+                    style={{ userSelect: 'none' }}
+                    onMouseDown={(e) => isAnnotating && e.preventDefault()}
                   />
                   
                   {/* Camada de anotações */}
