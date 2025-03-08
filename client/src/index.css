@@ -180,8 +180,16 @@ textarea:focus {
   }
   
   .responsive-card {
-    padding: 0.75rem !important;
+    padding: 0.5rem !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Certificar que os itens da grid não sejam cortados */
+  .grid > div {
     min-width: 0 !important;
     width: 100% !important;
     overflow: hidden !important;

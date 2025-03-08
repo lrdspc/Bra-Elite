@@ -58,38 +58,34 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
   useEffect(() => {
     // Registrar a posição anterior para comparar a direção da rolagem
     let lastScrollY = window.scrollY;
-    let ticking = false;
     
-    const handleScroll = () => {
-      // Evitar atualizações excessivas com throttling simples
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          
-          // Mostrar botão de scroll para o topo quando estiver longe do topo
-          setShowScrollTop(currentScrollY > 300);
-          
-          // Lógica simplificada: Esconder completamente o cabeçalho ao rolar para baixo,
-          // mesmo com rolagem pequena (conforme solicitado pelo cliente)
-          
-          if (currentScrollY < 5) {
-            // No topo da página - mostrar cabeçalho
-            setIsHeaderVisible(true);
-          } else if (currentScrollY > lastScrollY) {
-            // Rolando para baixo - esconder cabeçalho imediatamente
-            setIsHeaderVisible(false);
-          } else if (currentScrollY < lastScrollY) {
-            // Rolando para cima - mostrar cabeçalho
-            setIsHeaderVisible(true);
-          }
-          
-          // Atualizar a última posição conhecida
-          lastScrollY = currentScrollY;
-          ticking = false;
-        });
-        
-        ticking = true;
+    // Função para verificar se deve mostrar o cabeçalho
+    function checkHeader() {
+      const currentScrollY = window.scrollY;
+      
+      // Mostrar botão de scroll para o topo quando estiver longe do topo
+      setShowScrollTop(currentScrollY > 300);
+      
+      // Lógica extremamente simplificada:
+      // 1. Se estiver no topo (até 5px), mostrar cabeçalho
+      // 2. Em qualquer outro caso, esconder o cabeçalho
+      
+      if (currentScrollY <= 5) {
+        setIsHeaderVisible(true);
+      } else {
+        setIsHeaderVisible(false);
       }
+      
+      // Atualizar a última posição
+      lastScrollY = currentScrollY;
+    }
+    
+    // Verificar a posição inicial
+    checkHeader();
+    
+    // Função para lidar com eventos de rolagem
+    const handleScroll = () => {
+      checkHeader();
     };
     
     // Adicionar event listener com passive: true para melhor performance

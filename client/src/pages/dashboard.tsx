@@ -114,8 +114,8 @@ const DashboardPage: React.FC = () => {
       {/* Dashboard Content */}
       <div className="px-3 py-2 md:p-6">
         {/* KPI Row - Otimizado para mobile (2 colunas) e desktop (4 colunas) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 md:mb-6">
-          <div className="w-full min-w-0">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 md:mb-6" style={{minWidth: 0, width: '100%'}}>
+          <div className="w-full" style={{minWidth: 0, overflow: 'hidden'}}>
             <KpiCard 
               title="Vistorias do Mês" 
               value={isLoading ? "..." : dashboardData?.totalInspections || 0}
@@ -126,7 +126,7 @@ const DashboardPage: React.FC = () => {
             />
           </div>
           
-          <div className="w-full min-w-0">
+          <div className="w-full" style={{minWidth: 0, overflow: 'hidden'}}>
             <KpiCard 
               title="Pendentes" 
               value={isLoading ? "..." : dashboardData?.pendingCount || 0}
@@ -137,7 +137,7 @@ const DashboardPage: React.FC = () => {
             />
           </div>
           
-          <div className="w-full min-w-0">
+          <div className="w-full" style={{minWidth: 0, overflow: 'hidden'}}>
             <KpiCard 
               title="Tempo Médio" 
               value={isLoading ? "..." : `${dashboardData?.avgTimeInHours.toFixed(1)}h`}
@@ -148,7 +148,7 @@ const DashboardPage: React.FC = () => {
             />
           </div>
           
-          <div className="w-full min-w-0">
+          <div className="w-full" style={{minWidth: 0, overflow: 'hidden'}}>
             <KpiCard 
               title="Taxa de Procedência" 
               value={isLoading ? "..." : `${dashboardData?.approvalRate}%`}
