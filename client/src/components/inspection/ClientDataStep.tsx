@@ -210,26 +210,77 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
       );
       
       const data = await response.json();
+      console.log("Dados de geocodificação reversa:", data);
       
       if (data && data.address) {
         // Extrair informações do endereço
         const { 
-          road, 
+          road, street, footway, path, pedestrian, // possíveis nomes para ruas
           house_number, 
-          suburb, 
-          city, 
-          town, 
-          state, 
+          suburb, neighbourhood, 
+          city, town, municipality, county, // possíveis nomes para cidade
+          state, state_code, // possíveis nomes para estado 
           postcode,
-          neighbourhood
+          country_code
         } = data.address;
         
+        // Mapear código de estado para sigla brasileira (se necessário)
+        let stateCode = '';
+        if (country_code === 'br') {
+          if (state_code) {
+            stateCode = state_code.toUpperCase();
+          } else if (state) {
+            // Mapeamento de nomes de estados brasileiros para siglas
+            const estadoParaSigla: Record<string, string> = {
+              'acre': 'AC',
+              'alagoas': 'AL',
+              'amapá': 'AP',
+              'amazonas': 'AM',
+              'bahia': 'BA',
+              'ceará': 'CE',
+              'distrito federal': 'DF',
+              'espírito santo': 'ES',
+              'goiás': 'GO',
+              'maranhão': 'MA',
+              'mato grosso': 'MT',
+              'mato grosso do sul': 'MS',
+              'minas gerais': 'MG',
+              'pará': 'PA',
+              'paraíba': 'PB',
+              'paraná': 'PR',
+              'pernambuco': 'PE',
+              'piauí': 'PI',
+              'rio de janeiro': 'RJ',
+              'rio grande do norte': 'RN',
+              'rio grande do sul': 'RS',
+              'rondônia': 'RO',
+              'roraima': 'RR',
+              'santa catarina': 'SC',
+              'são paulo': 'SP',
+              'sergipe': 'SE',
+              'tocantins': 'TO'
+            };
+            
+            const stateLower = state.toLowerCase();
+            stateCode = estadoParaSigla[stateLower] || '';
+          }
+        }
+        
+        // Determinar o endereço da rua (tentando várias propriedades possíveis)
+        const streetAddress = road || street || footway || path || pedestrian || '';
+        
+        // Determinar a cidade (tentando várias propriedades possíveis)
+        const cityName = city || town || municipality || county || '';
+        
+        // Determinar o bairro (tentando várias propriedades possíveis)
+        const districtName = neighbourhood || suburb || '';
+        
         updateFormData({
-          address: road || '',
+          address: streetAddress,
           number: house_number || '',
-          neighborhood: neighbourhood || suburb || '',
-          city: city || town || '',
-          state: state || '',
+          neighborhood: districtName,
+          city: cityName,
+          state: stateCode,
           zipCode: postcode || '',
           latitude: coordinates.lat,
           longitude: coordinates.lng
