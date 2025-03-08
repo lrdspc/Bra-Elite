@@ -47,6 +47,11 @@
     --chart-3: 211 100% 31%;            /* Azul Brasilit */
     --chart-4: 135 50% 43%;             /* Verde */
     --chart-5: 262 83% 58%;             /* Roxo */
+    
+    /* Variáveis para layout responsivo */
+    --header-height: 56px;              /* Altura padrão do cabeçalho móvel */
+    --bottom-nav-height: 56px;          /* Altura da barra de navegação inferior */
+    --content-padding: 1rem;            /* Preenchimento padrão para conteúdo */
   }
 
   * {
@@ -56,6 +61,19 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden; /* Prevenir overflow horizontal */
+  }
+  
+  /* Ajusta automaticamente o padding-top quando o cabeçalho está visível */
+  @media (max-width: 768px) {
+    main {
+      padding-top: var(--header-height);
+    }
+    
+    .content-area {
+      min-height: calc(100vh - var(--header-height) - var(--bottom-nav-height));
+      padding-bottom: calc(var(--bottom-nav-height) + 1rem);
+    }
   }
 }
 

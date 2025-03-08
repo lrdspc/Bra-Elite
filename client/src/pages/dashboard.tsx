@@ -112,9 +112,9 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Dashboard Content */}
-      <div className="p-4 md:p-6">
-        {/* KPI Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="p-3 md:p-6">
+        {/* KPI Row - Otimizado para mobile (2 colunas) e desktop (4 colunas) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
           <KpiCard 
             title="Vistorias do Mês" 
             value={isLoading ? "..." : dashboardData?.totalInspections || 0}
@@ -122,6 +122,7 @@ const DashboardPage: React.FC = () => {
               value: `${dashboardData?.changeFromLastMonth || 0}% vs último mês`,
               positive: (dashboardData?.changeFromLastMonth || 0) > 0
             }}
+            className="text-sm md:text-base"
           />
           
           <KpiCard 
@@ -131,6 +132,7 @@ const DashboardPage: React.FC = () => {
               value: `${dashboardData?.criticalPending || 0} críticas`,
               positive: false
             }}
+            className="text-sm md:text-base"
           />
           
           <KpiCard 
@@ -140,6 +142,7 @@ const DashboardPage: React.FC = () => {
               value: `${dashboardData?.avgTimeImprovement * 60}min mais rápido`,
               positive: true
             }}
+            className="text-sm md:text-base"
           />
           
           <KpiCard 
@@ -149,13 +152,23 @@ const DashboardPage: React.FC = () => {
               value: `${dashboardData?.procedenteCount} procedentes`,
               positive: true
             }}
+            className="text-sm md:text-base"
           />
         </div>
 
-        {/* Next Visits and Quick Access */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <NextVisits />
+        {/* Quick Access - Movido para cima em dispositivos móveis para acesso mais rápido */}
+        <div className="block md:hidden mb-4">
           <QuickAccess />
+        </div>
+        
+        {/* Next Visits e Quick Access (Desktop) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
+          <div className="md:col-span-2">
+            <NextVisits />
+          </div>
+          <div className="hidden md:block">
+            <QuickAccess />
+          </div>
         </div>
 
         {/* Recent Activity */}

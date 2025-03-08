@@ -74,7 +74,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
       )}
 
-      <div className="flex flex-grow h-full pt-14 md:pt-0">
+      <div className="flex flex-grow h-full md:pt-0">
         {/* Desktop Sidebar - oculto em dispositivos móveis */}
         <aside className="hidden md:block">
           <DesktopSidebar 
@@ -90,7 +90,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         />
 
         {/* Conteúdo Principal - Layout Responsivo */}
-        <main className="flex-1 md:ml-64 min-h-screen pb-16 md:pb-8 transition-all duration-200 ease-in-out">
+        <main className="flex-1 md:ml-64 min-h-screen pb-16 md:pb-8 transition-all duration-200 ease-in-out content-area">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 responsive-container-xl">
             {children}
           </div>
