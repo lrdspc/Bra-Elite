@@ -1,6 +1,77 @@
-node_modules
-dist
+# Dependências
+node_modules/
+dist/
+build/
+.npm
+.pnp
+.pnp.js
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Sistema operacional
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Cobertura de testes
+coverage/
+.nyc_output
+
+# IDEs e editores
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Caches e temporários
+.cache/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.eslintcache
+.parcel-cache
+.cache
+
+# Temporários do Replit
+.replit
+.config/
+.upm/
+.nix/
+
+# Arquivos específicos de produção
+uploads/*
+!uploads/.gitkeep
+tmp/*
+!tmp/.gitkeep
+
+# Backups
+*.bak
+*.backup
+*.swp
+*~
