@@ -28,12 +28,12 @@ const ReportsPage: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<any>(null);
 
   // Fetch completed inspections to generate reports
-  const { data: inspections, isLoading } = useQuery({
+  const { data: inspections, isLoading } = useQuery<any[]>({
     queryKey: ['/api/inspections'],
   });
 
   // Filter for completed reports only
-  const completedInspections = inspections 
+  const completedInspections = Array.isArray(inspections) 
     ? inspections.filter((inspection: any) => inspection.status === 'completed') 
     : [];
 
@@ -76,12 +76,34 @@ const ReportsPage: React.FC = () => {
     setSelectedReport(report);
   };
 
-  const handleDownloadReport = (report: any) => {
-    // In a real app, this would trigger a file download
-    console.log('Downloading report:', report.protocolNumber);
-    
-    // Simulate download with toast
-    alert(`Relatório ${report.protocolNumber} baixado com sucesso!`);
+  const handleDownloadReport = async (report: any) => {
+    try {
+      // Solicitar a geração do relatório
+      const response = await fetch(`/api/inspections/${report.id}/generate-report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao gerar relatório');
+      }
+      
+      const data = await response.json();
+      console.log('Relatório gerado:', data);
+      
+      // Normalmente aqui faria o download do arquivo
+      // Em um app real, usaríamos algo como:
+      // window.open(data.downloadUrl, '_blank');
+      
+      // Por enquanto, apenas mostramos um alerta
+      alert(`Relatório ${report.protocolNumber} gerado com sucesso!`);
+    } catch (error) {
+      console.error('Erro ao gerar relatório:', error);
+      alert(`Erro ao gerar relatório: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    }
   };
 
   return (

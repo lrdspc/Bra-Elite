@@ -497,6 +497,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Relatório routes
+  app.get("/api/inspections/:id/report", isAuthenticated, async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      const inspection = await storage.getInspection(id);
+      
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+      
+      // Carregar dados relacionados para o relatório
+      const client = await storage.getClient(inspection.clientId);
+      const project = await storage.getProject(inspection.projectId);
+      const evidences = await storage.getEvidencesByInspectionId(id);
+      
+      // Estruturar o relatório
+      const report = {
+        ...inspection,
+        clientName: client?.name,
+        clientContact: client?.contactPhone,
+        clientEmail: client?.email,
+        projectName: project?.name,
+        address: project?.address,
+        city: project?.city,
+        state: project?.state,
+        evidences: evidences
+      };
+      
+      res.json(report);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Rota para gerar o documento de relatório
+  app.post("/api/inspections/:id/generate-report", isAuthenticated, async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      const inspection = await storage.getInspection(id);
+      
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
+      
+      // Verificar se a inspeção está concluída
+      if (inspection.status !== 'completed') {
+        return res.status(400).json({ message: "Relatório só pode ser gerado para inspeções concluídas" });
+      }
+      
+      // Simular geração do documento de relatório
+      const reportData = {
+        id: `REP-${Date.now()}`,
+        inspectionId: inspection.id,
+        generatedAt: new Date().toISOString(),
+        downloadUrl: `/api/reports/${inspection.id}/download`,
+        status: 'generated'
+      };
+      
+      res.json(reportData);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
