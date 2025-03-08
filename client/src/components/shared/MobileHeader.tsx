@@ -69,19 +69,17 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
           // Mostrar botão de scroll para o topo quando estiver longe do topo
           setShowScrollTop(currentScrollY > 300);
           
-          // Lógica refinada para controlar a visibilidade do cabeçalho:
-          // 1. No topo da página (até 10px): sempre mostrar o cabeçalho
-          // 2. Rolando para baixo: esconder o cabeçalho
-          // 3. Rolando para cima: mostrar o cabeçalho
+          // Lógica simplificada: Esconder completamente o cabeçalho ao rolar para baixo,
+          // mesmo com rolagem pequena (conforme solicitado pelo cliente)
           
-          if (currentScrollY < 10) {
-            // Caso 1: No topo da página - mostrar cabeçalho
+          if (currentScrollY < 5) {
+            // No topo da página - mostrar cabeçalho
             setIsHeaderVisible(true);
-          } else if (currentScrollY > lastScrollY + 5) {
-            // Caso 2: Rolando para baixo (com threshold mínimo de 5px) - esconder cabeçalho
+          } else if (currentScrollY > lastScrollY) {
+            // Rolando para baixo - esconder cabeçalho imediatamente
             setIsHeaderVisible(false);
-          } else if (currentScrollY < lastScrollY - 5) {
-            // Caso 3: Rolando para cima (com threshold mínimo de 5px) - mostrar cabeçalho
+          } else if (currentScrollY < lastScrollY) {
+            // Rolando para cima - mostrar cabeçalho
             setIsHeaderVisible(true);
           }
           

@@ -112,48 +112,56 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Dashboard Content */}
-      <div className="p-3 md:p-6">
+      <div className="p-2 sm:p-3 md:p-6">
         {/* KPI Row - Otimizado para mobile (2 colunas) e desktop (4 colunas) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
-          <KpiCard 
-            title="Vistorias do Mês" 
-            value={isLoading ? "..." : dashboardData?.totalInspections || 0}
-            change={{
-              value: `${dashboardData?.changeFromLastMonth || 0}% vs último mês`,
-              positive: (dashboardData?.changeFromLastMonth || 0) > 0
-            }}
-            className="text-sm md:text-base"
-          />
+        <div className="responsive-container grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-3 md:mb-6">
+          <div className="w-full min-w-0">
+            <KpiCard 
+              title="Vistorias do Mês" 
+              value={isLoading ? "..." : dashboardData?.totalInspections || 0}
+              change={{
+                value: `${dashboardData?.changeFromLastMonth || 0}% vs último mês`,
+                positive: (dashboardData?.changeFromLastMonth || 0) > 0
+              }}
+              className="responsive-card text-sm md:text-base"
+            />
+          </div>
           
-          <KpiCard 
-            title="Pendentes" 
-            value={isLoading ? "..." : dashboardData?.pendingCount || 0}
-            change={{
-              value: `${dashboardData?.criticalPending || 0} críticas`,
-              positive: false
-            }}
-            className="text-sm md:text-base"
-          />
+          <div className="w-full min-w-0">
+            <KpiCard 
+              title="Pendentes" 
+              value={isLoading ? "..." : dashboardData?.pendingCount || 0}
+              change={{
+                value: `${dashboardData?.criticalPending || 0} críticas`,
+                positive: false
+              }}
+              className="responsive-card text-sm md:text-base"
+            />
+          </div>
           
-          <KpiCard 
-            title="Tempo Médio" 
-            value={isLoading ? "..." : `${dashboardData?.avgTimeInHours.toFixed(1)}h`}
-            change={{
-              value: `${dashboardData?.avgTimeImprovement * 60}min mais rápido`,
-              positive: true
-            }}
-            className="text-sm md:text-base"
-          />
+          <div className="w-full min-w-0">
+            <KpiCard 
+              title="Tempo Médio" 
+              value={isLoading ? "..." : `${dashboardData?.avgTimeInHours.toFixed(1)}h`}
+              change={{
+                value: `${dashboardData?.avgTimeImprovement * 60}min mais rápido`,
+                positive: true
+              }}
+              className="responsive-card text-sm md:text-base"
+            />
+          </div>
           
-          <KpiCard 
-            title="Taxa de Procedência" 
-            value={isLoading ? "..." : `${dashboardData?.approvalRate}%`}
-            change={{
-              value: `${dashboardData?.procedenteCount} procedentes`,
-              positive: true
-            }}
-            className="text-sm md:text-base"
-          />
+          <div className="w-full min-w-0">
+            <KpiCard 
+              title="Taxa de Procedência" 
+              value={isLoading ? "..." : `${dashboardData?.approvalRate}%`}
+              change={{
+                value: `${dashboardData?.procedenteCount} procedentes`,
+                positive: true
+              }}
+              className="responsive-card text-sm md:text-base"
+            />
+          </div>
         </div>
 
         {/* Quick Access - Movido para cima em dispositivos móveis para acesso mais rápido */}

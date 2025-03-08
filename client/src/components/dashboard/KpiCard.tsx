@@ -20,22 +20,22 @@ const KpiCard: React.FC<KpiCardProps> = ({
   className 
 }) => {
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn("w-full max-w-full overflow-hidden", className)}>
       <CardContent className="p-4">
-        <p className="text-muted-foreground text-sm">{title}</p>
-        <p className="text-2xl font-bold mt-1">{value}</p>
+        <p className="text-muted-foreground text-xs sm:text-sm truncate">{title}</p>
+        <p className="text-xl sm:text-2xl font-bold mt-1 truncate">{value}</p>
         
         {change && (
           <div className={cn(
-            "flex items-center mt-2 text-sm",
+            "flex items-center mt-2 text-xs sm:text-sm",
             change.positive ? "text-success" : "text-destructive"
           )}>
             {change.positive ? (
-              <ArrowUp className="h-4 w-4 mr-1" />
+              <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
             ) : (
-              <ArrowDown className="h-4 w-4 mr-1" />
+              <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
             )}
-            <span>{change.value}</span>
+            <span className="truncate">{change.value}</span>
           </div>
         )}
       </CardContent>
