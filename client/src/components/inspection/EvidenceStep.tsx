@@ -226,6 +226,10 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   const handleImageMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAnnotating || !imageContainerRef.current) return;
     
+    // Impedir comportamento padrão de arrastar a imagem
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Evitar conflito com o clique em uma anotação existente
     if (activeAnnotationIndex !== null) {
       setActiveAnnotationIndex(null);
@@ -262,6 +266,10 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   // Atualizar durante o arrastar
   const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !isAnnotating || !tempAnnotation) return;
+    
+    // Impedir comportamento padrão de arrastar a imagem
+    e.preventDefault();
+    e.stopPropagation();
     
     const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
     setDragEndPos({ x, y });
@@ -301,6 +309,10 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   const handleImageMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !isAnnotating) return;
     
+    // Impedir comportamento padrão
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Adicionar a anotação final se não for texto (texto é tratado separadamente)
     if (tempAnnotation && tempAnnotation.type !== 'text') {
       // Verificar se a anotação tem tamanho mínimo
@@ -329,6 +341,10 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   // Tratar click simples (compatibilidade com a versão anterior)
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAnnotating || !imageContainerRef.current || isDragging) return;
+    
+    // Impedir comportamento padrão ao clicar quando estamos anotando
+    e.preventDefault();
+    e.stopPropagation();
     
     const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
     
