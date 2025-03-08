@@ -9,6 +9,47 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
 
+// Função para verificar a integridade dos dados
+async function verificarIntegridadeDados() {
+  console.log("Verificando integridade dos dados...");
+  
+  // Verificar integridade das inspeções (garantir que clientId e projectId existam)
+  const inspections = await storage.getInspections();
+  let temProblemas = false;
+  let inspectionIds = [];
+  
+  for (const inspection of inspections) {
+    // Verificar se os IDs de relacionamento existem
+    if (!inspection.clientId || !inspection.projectId) {
+      console.error(`Problema de integridade: Inspeção ${inspection.id} não tem clientId e/ou projectId`);
+      inspectionIds.push(inspection.id);
+      temProblemas = true;
+    } else {
+      // Verificar se os IDs de relacionamento são válidos
+      const client = await storage.getClient(inspection.clientId);
+      const project = await storage.getProject(inspection.projectId);
+      
+      if (!client) {
+        console.error(`Problema de integridade: Inspeção ${inspection.id} tem clientId ${inspection.clientId} que não existe`);
+        temProblemas = true;
+      }
+      
+      if (!project) {
+        console.error(`Problema de integridade: Inspeção ${inspection.id} tem projectId ${inspection.projectId} que não existe`);
+        temProblemas = true;
+      }
+    }
+  }
+  
+  if (temProblemas) {
+    console.warn("Foram encontrados problemas de integridade. Redefinindo os dados...");
+    await storage.resetData();
+    console.log("Dados redefinidos com sucesso.");
+  } else {
+    console.log("Verificação de integridade concluída. Nenhum problema encontrado.");
+  }
+}
+
 // Extende a interface SessionData para incluir o usuário de demonstração
 declare module 'express-session' {
   interface SessionData {
@@ -17,6 +58,9 @@ declare module 'express-session' {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Verificar a integridade dos dados no início do servidor
+  await verificarIntegridadeDados();
+  
   // Session setup
   const MemoryStoreSession = MemoryStore(session);
   

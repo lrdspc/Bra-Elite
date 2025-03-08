@@ -156,7 +156,7 @@ export class MemStorage implements IStorage {
       longitude: "-46.6444"
     }).id;
     
-    // Add sample inspections
+    // Add sample inspections - usar skipValidation=true para ignorar validações durante inicialização
     this.createInspection({
       protocolNumber: "VT-2023-0782",
       userId: 1,
@@ -173,7 +173,7 @@ export class MemStorage implements IStorage {
       warranty: "7",
       conclusion: "Aprovado",
       recommendation: "Manutenção preventiva anual"
-    });
+    }, true); // Passar skipValidation=true
     
     this.createInspection({
       protocolNumber: "VT-2023-0781",
@@ -191,7 +191,7 @@ export class MemStorage implements IStorage {
       warranty: "7",
       conclusion: "Pendente revisão",
       recommendation: "Aguardando análise técnica"
-    });
+    }, true); // Passar skipValidation=true
     
     this.createInspection({
       protocolNumber: "VT-2023-0780",
@@ -206,7 +206,7 @@ export class MemStorage implements IStorage {
       area: 600,
       installationDate: new Date("2019-12-05"),
       warranty: "5"
-    });
+    }, true); // Passar skipValidation=true
     
     // Schedule upcoming inspections
     this.createInspection({
@@ -217,7 +217,7 @@ export class MemStorage implements IStorage {
       status: "scheduled",
       scheduledDate: new Date(Date.now() + 3600000), // Today in 1 hour
       roofModel: "Telha Ondulada"
-    });
+    }, true); // Passar skipValidation=true
     
     this.createInspection({
       protocolNumber: "VT-2023-0784",
@@ -227,7 +227,7 @@ export class MemStorage implements IStorage {
       status: "scheduled",
       scheduledDate: new Date(Date.now() + 86400000), // Tomorrow
       roofModel: "Telha Plana"
-    });
+    }, true); // Passar skipValidation=true
     
     this.createInspection({
       protocolNumber: "VT-2023-0785",
@@ -237,7 +237,7 @@ export class MemStorage implements IStorage {
       status: "scheduled",
       scheduledDate: new Date(Date.now() + 86400000 * 4), // In 4 days
       roofModel: "Fibrocimento"
-    });
+    }, true); // Passar skipValidation=true
     
     // Garantir que todas as inspeções têm os campos clientId e projectId
     console.log("Verificando integridade das inspeções...");
@@ -375,14 +375,43 @@ export class MemStorage implements IStorage {
     );
   }
   
-  async createInspection(insertInspection: InsertInspection): Promise<Inspection> {
+  async createInspection(insertInspection: InsertInspection, skipValidation: boolean = false): Promise<Inspection> {
     const id = this.inspectionId++;
+    
+    // Se skipValidation for true, pular verificações (usado para inicialização e reset de dados)
+    if (!skipValidation) {
+      // Verificar se clientId e projectId estão definidos
+      if (!insertInspection.clientId || !insertInspection.projectId) {
+        throw new Error("Inspeção deve ter clientId e projectId definidos");
+      }
+      
+      // Verificar se o cliente e o projeto existem
+      const clientExists = await this.getClient(insertInspection.clientId);
+      const projectExists = await this.getProject(insertInspection.projectId);
+      
+      if (!clientExists) {
+        throw new Error(`Cliente com ID ${insertInspection.clientId} não encontrado`);
+      }
+      
+      if (!projectExists) {
+        throw new Error(`Projeto com ID ${insertInspection.projectId} não encontrado`);
+      }
+    }
+    
     const inspection: Inspection = {
       ...insertInspection,
       id,
       createdAt: new Date(),
       updatedAt: new Date()
     };
+    
+    // Registrar criação com fins de depuração
+    if (inspection.clientId && inspection.projectId) {
+      console.log(`Criando inspeção ${id} com clientId=${inspection.clientId}, projectId=${inspection.projectId}`);
+    } else {
+      console.log(`Criando inspeção ${id} (sem clientId ou projectId - modo inicialização)`);
+    }
+    
     this.inspections.set(id, inspection);
     return inspection;
   }
@@ -391,11 +420,37 @@ export class MemStorage implements IStorage {
     const inspection = await this.getInspection(id);
     if (!inspection) return undefined;
     
+    // Verificar se está tentando alterar clientId
+    if (inspectionData.clientId !== undefined && inspectionData.clientId !== inspection.clientId) {
+      // Verificar se o novo clientId existe
+      const clientExists = await this.getClient(inspectionData.clientId);
+      if (!clientExists) {
+        throw new Error(`Cliente com ID ${inspectionData.clientId} não encontrado`);
+      }
+    }
+    
+    // Verificar se está tentando alterar projectId
+    if (inspectionData.projectId !== undefined && inspectionData.projectId !== inspection.projectId) {
+      // Verificar se o novo projectId existe
+      const projectExists = await this.getProject(inspectionData.projectId);
+      if (!projectExists) {
+        throw new Error(`Projeto com ID ${inspectionData.projectId} não encontrado`);
+      }
+    }
+    
     const updatedInspection: Inspection = {
       ...inspection,
       ...inspectionData,
       updatedAt: new Date()
     };
+    
+    // Garantir que os IDs de relacionamento estejam sempre presentes
+    if (!updatedInspection.clientId || !updatedInspection.projectId) {
+      throw new Error("Inspeção deve manter clientId e projectId definidos");
+    }
+    
+    // Registrar atualização com fins de depuração
+    console.log(`Atualizando inspeção ${id}: clientId=${updatedInspection.clientId}, projectId=${updatedInspection.projectId}`);
     
     this.inspections.set(id, updatedInspection);
     return updatedInspection;
