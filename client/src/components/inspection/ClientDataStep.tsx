@@ -409,9 +409,25 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
             </div>
             
             <div className="md:col-span-4">
-              <Label htmlFor="address" className="block text-sm font-medium text-muted-foreground mb-1">
-                Logradouro
-              </Label>
+              <div className="flex justify-between items-center mb-1">
+                <Label htmlFor="address" className="block text-sm font-medium text-muted-foreground">
+                  Logradouro
+                </Label>
+                <Button 
+                  onClick={handleGetLocationAddress}
+                  variant="outline" 
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  disabled={isLoadingLocation || !coordinates}
+                >
+                  {isLoadingLocation ? (
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  ) : (
+                    <MapPin className="h-3 w-3 mr-1" />
+                  )}
+                  Usar localização atual
+                </Button>
+              </div>
               <Input
                 id="address"
                 name="address"
@@ -535,12 +551,12 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
               <div className="mt-2 flex items-center text-sm text-muted-foreground">
                 {coordinates ? (
                   <>
-                    <span className="material-icons text-success mr-1 text-sm">gps_fixed</span>
+                    <MapPin className="h-4 w-4 mr-1 text-green-500" />
                     <span>Localização confirmada via GPS</span>
                   </>
                 ) : (
                   <>
-                    <span className="material-icons text-error mr-1 text-sm">gps_off</span>
+                    <MapPin className="h-4 w-4 mr-1 text-red-500" />
                     <span>Não foi possível obter a localização via GPS</span>
                   </>
                 )}
