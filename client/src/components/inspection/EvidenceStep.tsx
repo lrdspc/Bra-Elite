@@ -1,18 +1,36 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Camera, X, Pencil, Image, Upload, Trash2 } from 'lucide-react';
+import { Camera, X, Pencil, Image, Upload, Trash2, Circle, Square, ArrowUp, Type, Undo } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from '@/lib/utils';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { useMobile } from '@/hooks/use-mobile';
+
+interface Annotation {
+  type: 'arrow' | 'circle' | 'rectangle' | 'text';
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  text?: string;
+  color: string;
+  size: number;
+}
 
 interface EvidenceImage {
   id: string;
   url: string;
   category: string;
   notes?: string;
+  annotations?: Annotation[];
 }
 
 interface EvidenceStepProps {
@@ -43,6 +61,18 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   const [currentCategory, setCurrentCategory] = useState('geral');
   const [currentNotes, setCurrentNotes] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Annotation feature states
+  const [isAnnotating, setIsAnnotating] = useState(false);
+  const [annotationTool, setAnnotationTool] = useState<'arrow' | 'circle' | 'rectangle' | 'text'>('arrow');
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [annotationColor, setAnnotationColor] = useState('#EE1B24'); // Cor padrão Brasilit
+  const [annotationSize, setAnnotationSize] = useState(3); // Tamanho padrão
+  const [annotationText, setAnnotationText] = useState('');
+  const [isAddingText, setIsAddingText] = useState(false);
+  const [textPosition, setTextPosition] = useState({ x: 0, y: 0 });
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMobile();
 
   const categories = [
     { id: 'geral', name: 'Geral' },
@@ -131,6 +161,97 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
 
   const handleViewImage = (evidence: EvidenceImage) => {
     setSelectedImage(evidence);
+    // Se a imagem tiver anotações, carregue-as
+    if (evidence.annotations && evidence.annotations.length > 0) {
+      setAnnotations(evidence.annotations);
+    } else {
+      setAnnotations([]);
+    }
+    // Resetar modo de anotação
+    setIsAnnotating(false);
+  };
+  
+  // Funções para anotações
+  const startAnnotating = () => {
+    setIsAnnotating(true);
+  };
+
+  const cancelAnnotating = () => {
+    setIsAnnotating(false);
+    // Recarregar anotações originais
+    if (selectedImage?.annotations) {
+      setAnnotations(selectedImage.annotations);
+    } else {
+      setAnnotations([]);
+    }
+  };
+
+  const saveAnnotations = () => {
+    if (!selectedImage) return;
+    
+    const updatedEvidences = evidences.map(ev => 
+      ev.id === selectedImage.id 
+        ? { ...ev, annotations: annotations } 
+        : ev
+    );
+    
+    setEvidences(updatedEvidences);
+    updateFormData({ evidences: updatedEvidences });
+    setIsAnnotating(false);
+  };
+  
+  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isAnnotating || !imageContainerRef.current) return;
+    
+    const rect = imageContainerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100; // Coordenadas percentuais
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    if (annotationTool === 'text') {
+      setIsAddingText(true);
+      setTextPosition({ x, y });
+      setAnnotationText('');
+    } else {
+      // Para outras ferramentas, adicionamos diretamente
+      const newAnnotation: Annotation = {
+        type: annotationTool,
+        x: x,
+        y: y,
+        color: annotationColor,
+        size: annotationSize,
+        // Valores padrão dependendo do tipo da anotação
+        ...(annotationTool === 'circle' && { width: 10, height: 10 }),
+        ...(annotationTool === 'rectangle' && { width: 15, height: 10 }),
+        ...(annotationTool === 'arrow' && { width: 10, height: 0 })
+      };
+      
+      setAnnotations([...annotations, newAnnotation]);
+    }
+  };
+  
+  const addTextAnnotation = () => {
+    if (!annotationText.trim()) {
+      setIsAddingText(false);
+      return;
+    }
+    
+    const newAnnotation: Annotation = {
+      type: 'text',
+      x: textPosition.x,
+      y: textPosition.y,
+      text: annotationText,
+      color: annotationColor,
+      size: annotationSize
+    };
+    
+    setAnnotations([...annotations, newAnnotation]);
+    setIsAddingText(false);
+  };
+  
+  const removeLastAnnotation = () => {
+    if (annotations.length > 0) {
+      setAnnotations(annotations.slice(0, -1));
+    }
   };
 
   return (
@@ -386,13 +507,273 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
           {selectedImage && (
             <div className="flex flex-col md:flex-row gap-4">
               <div className="md:flex-1">
-                <div className="rounded-md overflow-hidden">
+                <div 
+                  className="rounded-md overflow-hidden relative"
+                  ref={imageContainerRef}
+                  onClick={handleImageClick}
+                >
+                  {/* Layer de imagem (base) */}
                   <img 
                     src={selectedImage.url} 
                     alt="Evidência" 
                     className="w-full h-auto max-h-[70vh] object-contain"
                   />
+                  
+                  {/* Camada de anotações */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {annotations.map((annotation, index) => (
+                      <div 
+                        key={index} 
+                        className="absolute"
+                        style={{
+                          left: `${annotation.x}%`,
+                          top: `${annotation.y}%`,
+                          color: annotation.color,
+                        }}
+                      >
+                        {annotation.type === 'circle' && (
+                          <div 
+                            className="rounded-full border-2 transform -translate-x-1/2 -translate-y-1/2" 
+                            style={{
+                              width: `${annotation.width}%`,
+                              height: `${annotation.width}%`,
+                              borderColor: annotation.color,
+                              borderWidth: annotation.size,
+                            }}
+                          />
+                        )}
+                        {annotation.type === 'rectangle' && (
+                          <div 
+                            className="border-2 transform -translate-x-1/2 -translate-y-1/2" 
+                            style={{
+                              width: `${annotation.width}%`,
+                              height: `${annotation.height}%`,
+                              borderColor: annotation.color,
+                              borderWidth: annotation.size,
+                            }}
+                          />
+                        )}
+                        {annotation.type === 'arrow' && (
+                          <div 
+                            className="flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2"
+                          >
+                            <ArrowUp 
+                              style={{
+                                color: annotation.color,
+                                width: `${annotation.size * 10}px`,
+                                height: `${annotation.size * 10}px`,
+                                transform: 'rotate(45deg)',
+                              }}
+                            />
+                          </div>
+                        )}
+                        {annotation.type === 'text' && (
+                          <div 
+                            className="absolute transform -translate-x-1/2 -translate-y-1/2 text-center bg-white bg-opacity-75 px-1 py-0.5 rounded whitespace-nowrap"
+                            style={{
+                              color: annotation.color,
+                              fontSize: `${annotation.size * 4}px`,
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            {annotation.text}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Modal de adição de texto */}
+                  {isAddingText && (
+                    <div 
+                      className="absolute p-2 bg-white rounded-md shadow-lg z-10"
+                      style={{
+                        left: `${textPosition.x}%`,
+                        top: `${textPosition.y}%`,
+                        transform: 'translate(-50%, -50%)',
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="mb-2">
+                        <Input
+                          value={annotationText}
+                          onChange={(e) => setAnnotationText(e.target.value)}
+                          placeholder="Digite o texto..."
+                          className="w-full text-sm"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => setIsAddingText(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={addTextAnnotation}
+                        >
+                          Adicionar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+                
+                {/* Barra de ferramentas de anotação */}
+                {isAnnotating && (
+                  <div className="mt-2 p-2 bg-secondary/50 rounded-md">
+                    <div className="flex items-center flex-wrap gap-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant={annotationTool === 'arrow' ? 'default' : 'outline'} 
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => setAnnotationTool('arrow')}
+                            >
+                              <ArrowUp className="h-4 w-4 transform rotate-45" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Seta</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant={annotationTool === 'circle' ? 'default' : 'outline'} 
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => setAnnotationTool('circle')}
+                            >
+                              <Circle className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Círculo</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant={annotationTool === 'rectangle' ? 'default' : 'outline'} 
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => setAnnotationTool('rectangle')}
+                            >
+                              <Square className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Retângulo</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant={annotationTool === 'text' ? 'default' : 'outline'} 
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => setAnnotationTool('text')}
+                            >
+                              <Type className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Texto</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <div className="h-6 w-[1px] bg-border mx-1"></div>
+                      
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="h-8 w-8 p-0 relative"
+                          >
+                            <div 
+                              className="h-5 w-5 rounded-full border"
+                              style={{ backgroundColor: annotationColor }}
+                            />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-2">
+                          <div className="flex flex-wrap gap-1 w-36">
+                            {['#EE1B24', '#00529C', '#FFEB00', '#000000', '#FFFFFF', '#4CAF50', '#FF9800', '#9C27B0'].map(color => (
+                              <button
+                                key={color}
+                                onClick={() => setAnnotationColor(color)}
+                                className={cn(
+                                  "h-6 w-6 rounded-full border",
+                                  color === annotationColor && "ring-2 ring-offset-2 ring-primary"
+                                )}
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      <div className="h-6 w-[1px] bg-border mx-1"></div>
+                      
+                      <div className="flex items-center space-x-2 flex-1 min-w-[120px]">
+                        <Label htmlFor="annotation-size" className="text-xs">Tamanho:</Label>
+                        <Slider
+                          id="annotation-size"
+                          min={1}
+                          max={10}
+                          step={1}
+                          value={[annotationSize]}
+                          onValueChange={(value) => setAnnotationSize(value[0])}
+                          className="flex-1"
+                        />
+                      </div>
+                      
+                      <div className="h-6 w-[1px] bg-border mx-1"></div>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={removeLastAnnotation}
+                              disabled={annotations.length === 0}
+                            >
+                              <Undo className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Desfazer</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    
+                    <div className="flex justify-end mt-2 gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={cancelAnnotating}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        size="sm"
+                        onClick={saveAnnotations}
+                      >
+                        Salvar Anotações
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="md:w-64 space-y-4">
@@ -412,21 +793,30 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                   </div>
                 )}
                 
-                <div className="flex gap-2 pt-4">
+                <div className="flex flex-col gap-2 pt-4">
+                  {!isAnnotating && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={startAnnotating}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Anotar Imagem
+                    </Button>
+                  )}
+                
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
                     onClick={() => handleEditImage(selectedImage)}
                   >
                     <Pencil className="h-4 w-4 mr-2" />
-                    Editar
+                    Editar Detalhes
                   </Button>
                   
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="flex-1"
                     onClick={() => {
                       deleteImage(selectedImage.id);
                       setSelectedImage(null);
