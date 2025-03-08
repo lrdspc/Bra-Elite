@@ -16,7 +16,7 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const { isLoading, isLoggedIn, user } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobile = useMobile();
   // Estado para verificar o status online/offline
@@ -24,10 +24,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   // Ensure user is authenticated
   useEffect(() => {
-    if (!isLoading && !isLoggedIn) {
+    if (!isLoading && !isLoggedIn && location !== '/login') {
       navigate('/login');
     }
-  }, [isLoading, isLoggedIn, navigate]);
+  }, [isLoading, isLoggedIn, navigate, location]);
   
   // Monitorar o status de conexão
   useEffect(() => {

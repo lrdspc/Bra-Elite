@@ -79,17 +79,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isLoading) {
       setUser(data);
       
-      // Redirect to login if not authenticated and not already on login page
-      if (!data && location !== '/login') {
-        navigate('/login');
-      }
-      
-      // Redirect to dashboard if authenticated and on login page
-      if (data && location === '/login') {
-        navigate('/');
-      }
+      // Não vamos redirecionar aqui para evitar conflitos com os layouts
+      // Deixamos a lógica de redirecionamento para os componentes de layout
     }
-  }, [data, isLoading, location, navigate]);
+  }, [data, isLoading]);
 
   // Usuários de demonstração para facilitar o acesso
   const demoUsers = [

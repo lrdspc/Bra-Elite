@@ -9,14 +9,16 @@ interface AuthLayoutProps {
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   const { isLoading, isLoggedIn } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
 
   // Redirect to dashboard if already authenticated
+  
   useEffect(() => {
-    if (!isLoading && isLoggedIn) {
+    // Apenas redirecionar se não estiver já em uma rota protegida
+    if (!isLoading && isLoggedIn && location === '/login') {
       navigate('/');
     }
-  }, [isLoading, isLoggedIn, navigate]);
+  }, [isLoading, isLoggedIn, navigate, location]);
 
   if (isLoading) {
     return <LoadingScreen />;
