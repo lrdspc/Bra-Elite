@@ -55,8 +55,10 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
     }
   }, [formData, clients, projects]);
 
-  // Get current geolocation
-  useEffect(() => {
+  // Função para solicitar acesso à geolocalização
+  const requestGeolocation = () => {
+    setIsLoadingLocation(true);
+    
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -64,13 +66,38 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
             lat: position.coords.latitude.toString(),
             lng: position.coords.longitude.toString()
           });
+          setIsLoadingLocation(false);
+          
+          toast({
+            title: "Localização obtida",
+            description: "Coordenadas GPS capturadas com sucesso."
+          });
         },
         (error) => {
           console.error("Error getting location:", error);
+          setIsLoadingLocation(false);
+          
+          toast({
+            title: "Erro ao obter localização",
+            description: error.message || "Verifique se o GPS está ativado e as permissões concedidas.",
+            variant: "destructive"
+          });
+        },
+        { 
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
+    } else {
+      setIsLoadingLocation(false);
+      toast({
+        title: "Geolocalização não suportada",
+        description: "Seu navegador não suporta geolocalização.",
+        variant: "destructive"
+      });
     }
-  }, []);
+  };
 
   const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const clientId = parseInt(e.target.value);
@@ -532,6 +559,33 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
             </div>
             
             <div className="md:col-span-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium">Localização GPS</h3>
+                <Button 
+                  onClick={requestGeolocation}
+                  variant="outline"
+                  size="sm"
+                  disabled={isLoadingLocation}
+                >
+                  {isLoadingLocation ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      <span>Obtendo GPS...</span>
+                    </>
+                  ) : coordinates ? (
+                    <>
+                      <MapPin className="h-4 w-4 mr-1 text-green-500" />
+                      <span>Atualizar localização</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span>Obter localização GPS</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+              
               <div className="rounded-md border border-input overflow-hidden h-48">
                 {coordinates ? (
                   <iframe 
@@ -543,21 +597,25 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
                     allowFullScreen
                   />
                 ) : (
-                  <div className="bg-muted h-full flex items-center justify-center">
-                    <span className="text-muted-foreground">Carregando mapa...</span>
+                  <div className="bg-muted h-full flex flex-col items-center justify-center">
+                    <MapPin className="h-8 w-8 mb-2 text-muted-foreground" />
+                    <span className="text-muted-foreground text-center px-4">
+                      Clique no botão "Obter localização GPS" para permitir o acesso à sua localização
+                    </span>
                   </div>
                 )}
               </div>
+              
               <div className="mt-2 flex items-center text-sm text-muted-foreground">
                 {coordinates ? (
                   <>
                     <MapPin className="h-4 w-4 mr-1 text-green-500" />
-                    <span>Localização confirmada via GPS</span>
+                    <span>Localização: {coordinates.lat.substr(0, 8)}, {coordinates.lng.substr(0, 8)}</span>
                   </>
                 ) : (
                   <>
                     <MapPin className="h-4 w-4 mr-1 text-red-500" />
-                    <span>Não foi possível obter a localização via GPS</span>
+                    <span>Localização GPS não capturada</span>
                   </>
                 )}
               </div>
