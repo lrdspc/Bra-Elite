@@ -56,34 +56,51 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
   
   // Controlar a visibilidade do cabeçalho ao rolar a página
   useEffect(() => {
+    // Registrar a posição anterior para comparar a direção da rolagem
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    
     const handleScroll = () => {
-      const currentPosition = window.scrollY;
-      
-      // Mostrar botão de scroll para o topo quando estiver longe do topo
-      if (currentPosition > 300) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
+      // Evitar atualizações excessivas com throttling simples
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          
+          // Mostrar botão de scroll para o topo quando estiver longe do topo
+          setShowScrollTop(currentScrollY > 300);
+          
+          // Lógica refinada para controlar a visibilidade do cabeçalho:
+          // 1. No topo da página (até 10px): sempre mostrar o cabeçalho
+          // 2. Rolando para baixo: esconder o cabeçalho
+          // 3. Rolando para cima: mostrar o cabeçalho
+          
+          if (currentScrollY < 10) {
+            // Caso 1: No topo da página - mostrar cabeçalho
+            setIsHeaderVisible(true);
+          } else if (currentScrollY > lastScrollY + 5) {
+            // Caso 2: Rolando para baixo (com threshold mínimo de 5px) - esconder cabeçalho
+            setIsHeaderVisible(false);
+          } else if (currentScrollY < lastScrollY - 5) {
+            // Caso 3: Rolando para cima (com threshold mínimo de 5px) - mostrar cabeçalho
+            setIsHeaderVisible(true);
+          }
+          
+          // Atualizar a última posição conhecida
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+        
+        ticking = true;
       }
-      
-      // Determinar se deve esconder o cabeçalho
-      // Se estiver rolando para baixo, esconde o cabeçalho
-      // Se estiver rolando para cima, mostra o cabeçalho
-      if (currentPosition > scrollPosition && currentPosition > 50) {
-        setIsHeaderVisible(false);
-      } else {
-        setIsHeaderVisible(true);
-      }
-      
-      setScrollPosition(currentPosition);
     };
     
+    // Adicionar event listener com passive: true para melhor performance
     window.addEventListener('scroll', handleScroll, { passive: true });
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [scrollPosition]);
+  }, []);
   
   // Função para rolar para o topo da página
   const scrollToTop = () => {
@@ -112,8 +129,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
     <>
       <header 
         ref={headerRef}
-        className={`bg-white shadow-sm fixed left-0 right-0 z-30 md:hidden optimize-gpu transition-transform duration-300 ${
-          isHeaderVisible ? 'top-0 translate-y-0' : '-translate-y-full'
+        className={`bg-white shadow-sm fixed left-0 right-0 z-30 md:hidden optimize-gpu transition-all duration-200 ease-out ${
+          isHeaderVisible ? 'top-0 opacity-100' : '-top-full opacity-0'
         }`}
       >
         {!showSearch ? (

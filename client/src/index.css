@@ -64,15 +64,20 @@
     overflow-x: hidden; /* Prevenir overflow horizontal */
   }
   
-  /* Ajusta automaticamente o padding-top quando o cabeçalho está visível */
+  /* Ajusta automaticamente o espaçamento quando o cabeçalho está visível */
   @media (max-width: 768px) {
     main {
-      padding-top: var(--header-height);
+      padding-top: 0;
     }
     
     .content-area {
-      min-height: calc(100vh - var(--header-height) - var(--bottom-nav-height));
+      min-height: calc(100vh - var(--bottom-nav-height));
       padding-bottom: calc(var(--bottom-nav-height) + 1rem);
+    }
+    
+    /* Permitir que o conteúdo seja exibido logo abaixo do cabeçalho fixo */
+    body {
+      scroll-padding-top: var(--header-height);
     }
   }
 }
