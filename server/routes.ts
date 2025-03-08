@@ -99,6 +99,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware
   const isAuthenticated = (req: Request, res: Response, next: any) => {
+    // TEMPORÁRIO: Desativar autenticação para testes
+    return next();
+    
+    // Código original comentado para testes
+    /*
     // Verificar se é um usuário de demonstração
     if (req.session.demoUser) {
       return next();
@@ -110,6 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     res.status(401).json({ message: "Unauthorized" });
+    */
   };
   
   // Auth routes
@@ -174,6 +180,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.get("/api/auth/session", (req, res) => {
+    // TEMPORÁRIO: Retornar sempre um usuário técnico para testes
+    return res.json({
+      id: 1,
+      username: 'tecnico',
+      name: 'João da Silva',
+      email: 'joao.silva@brasilit.com.br',
+      role: 'tecnico',
+      avatar: '/avatars/tecnico.png'
+    });
+    
+    // Código original comentado para testes
+    /*
     // Check for demo user in the session
     const sessionUser = req.session.demoUser;
     if (sessionUser) {
@@ -199,6 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Nenhuma autenticação encontrada
     res.status(401).json({ message: "Not authenticated" });
+    */
   });
   
   // Client routes
