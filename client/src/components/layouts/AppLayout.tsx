@@ -91,6 +91,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
         {/* Conteúdo Principal - Layout Responsivo */}
         <main className="flex-1 md:ml-64 min-h-screen pb-16 md:pb-8 transition-all duration-200 ease-in-out content-area">
+          {/* Espaçador para garantir que o conteúdo não fique abaixo do cabeçalho móvel */}
+          {isMobile && <div className="header-spacer"></div>}
+          
           <div className="max-w-7xl mx-auto px-4 pt-2 sm:px-6 sm:pt-3 lg:px-8 responsive-container-xl">
             {children}
           </div>

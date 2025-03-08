@@ -79,6 +79,12 @@
     body {
       scroll-padding-top: var(--header-height);
     }
+    
+    /* Ajustar espaçamento para o cabeçalho móvel */
+    .header-spacer {
+      height: var(--header-height);
+      display: block;
+    }
   }
 }
 

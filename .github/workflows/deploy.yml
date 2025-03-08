@@ -1,0 +1,79 @@
+name: Deploy PWA
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.github/**'
+      - '!.github/workflows/deploy.yml'
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    name: Build e Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Instalar dependências
+        run: npm ci
+      
+      - name: Verificar tipagem
+        run: npx tsc --noEmit
+      
+      - name: Compilar para produção
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_APP_VERSION: ${{ github.sha }}
+      
+      - name: Preparar artefatos para PWA
+        run: |
+          cp -r public/* dist/
+          cp public/manifest.json dist/
+          cp public/service-worker.js dist/
+          cp public/robots.txt dist/ || echo "No robots.txt found"
+      
+      - name: Compactar dist para deploy
+        run: tar -czf dist.tar.gz dist
+      
+      - name: Fazer upload do artefato de build
+        uses: actions/upload-artifact@v3
+        with:
+          name: pwa-build
+          path: dist.tar.gz
+          retention-days: 7
+      
+      - name: Configurar credenciais para deploy
+        uses: aws-actions/configure-aws-credentials@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: sa-east-1
+      
+      - name: Deploy para S3
+        if: github.ref == 'refs/heads/main'
+        run: |
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }} --delete
+      
+      - name: Invalidar cache do CloudFront
+        if: github.ref == 'refs/heads/main'
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+      
+      - name: Notificar deploy
+        if: github.ref == 'refs/heads/main'
+        run: |
+          curl -X POST -H "Content-Type: application/json" -d '{"text":"Nova versão do PWA de Vistorias Técnicas implantada com sucesso! Commit: ${{ github.sha }}"}' ${{ secrets.NOTIFY_WEBHOOK_URL }}
