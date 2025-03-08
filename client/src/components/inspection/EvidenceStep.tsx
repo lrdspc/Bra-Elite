@@ -227,10 +227,11 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAnnotating || !imageContainerRef.current) return;
     
-    // Impedir comportamento padrão ao clicar quando estamos anotando
+    // Sempre impedir comportamento padrão quando estamos no modo anotação
     e.preventDefault();
     e.stopPropagation();
     
+    // Obter coordenadas relativas no contêiner da imagem
     const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
     
     // Tratamento especial para texto
@@ -241,9 +242,12 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
       return;
     }
     
-    // Primeiro clique - começar a anotação
+    // Criação de anotações usando o sistema de dois cliques
     if (!tempAnnotation) {
-      // Criar uma nova anotação inicial
+      // Primeiro clique - Criar uma anotação inicial
+      console.log("Primeiro clique em", x, y);
+      
+      // Criar uma nova anotação temporária
       const initialAnnotation: Annotation = {
         type: annotationTool,
         x: x,
@@ -257,46 +261,49 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
       };
       
       setTempAnnotation(initialAnnotation);
-      return;
-    }
-    
-    // Segundo clique - finalizar a anotação
-    if (tempAnnotation && tempAnnotation.isPlacing) {
-      // Configurar tamanho/posição final baseado na posição do segundo clique
-      let finalAnnotation: Annotation = { ...tempAnnotation, isPlacing: false };
-      
-      if (annotationTool === 'arrow') {
-        finalAnnotation = {
-          ...finalAnnotation,
-          endX: x,
-          endY: y
-        };
-      } else if (annotationTool === 'circle') {
-        // Para círculo, usamos a distância desde o ponto inicial
-        const deltaX = Math.abs(x - tempAnnotation.x);
-        const deltaY = Math.abs(y - tempAnnotation.y);
-        const radius = Math.max(deltaX, deltaY);
+    } else {
+      // Segundo clique - finalizar a anotação
+      if (tempAnnotation.isPlacing) {
+        console.log("Segundo clique em", x, y);
         
-        finalAnnotation = {
-          ...finalAnnotation,
-          width: radius * 2,
-          height: radius * 2
-        };
-      } else if (annotationTool === 'rectangle') {
-        // Para retângulo, calculamos a diferença entre pontos inicial e final
-        const width = Math.abs(x - tempAnnotation.x);
-        const height = Math.abs(y - tempAnnotation.y);
+        // Calcular a anotação final baseada no tipo e nas coordenadas
+        let finalAnnotation: Annotation = { ...tempAnnotation, isPlacing: false };
         
-        finalAnnotation = {
-          ...finalAnnotation,
-          width: width,
-          height: height
-        };
+        if (annotationTool === 'arrow') {
+          finalAnnotation = {
+            ...finalAnnotation,
+            endX: x,
+            endY: y
+          };
+        } else if (annotationTool === 'circle') {
+          // Para círculo, calculamos o raio baseado na distância
+          const deltaX = Math.abs(x - tempAnnotation.x);
+          const deltaY = Math.abs(y - tempAnnotation.y);
+          const radius = Math.max(deltaX, deltaY);
+          
+          finalAnnotation = {
+            ...finalAnnotation,
+            width: radius * 2,
+            height: radius * 2
+          };
+        } else if (annotationTool === 'rectangle') {
+          // Para retângulo, calculamos a largura e altura
+          const width = Math.abs(x - tempAnnotation.x);
+          const height = Math.abs(y - tempAnnotation.y);
+          
+          finalAnnotation = {
+            ...finalAnnotation,
+            width: width,
+            height: height
+          };
+        }
+        
+        // Adicionar à lista de anotações
+        setAnnotations([...annotations, finalAnnotation]);
+        
+        // Limpar a anotação temporária
+        setTempAnnotation(null);
       }
-      
-      // Adicionar à lista de anotações
-      setAnnotations([...annotations, finalAnnotation]);
-      setTempAnnotation(null);
     }
   };
   
