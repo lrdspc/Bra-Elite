@@ -475,36 +475,41 @@ export class MemStorage implements IStorage {
       role: "admin"
     });
     
-    // Clientes
-    const client1Id = this.createClient({
+    // Clientes - Salvar como objetos diretamente
+    const client1 = this.createClient({
       name: "Condomínio Solar das Flores",
       type: "company",
       document: "12.345.678/0001-90",
       contactName: "Pedro Santos",
       contactPhone: "(11) 98765-4321",
       email: "contato@solardasflores.com.br"
-    }).id;
+    });
     
-    const client2Id = this.createClient({
+    const client2 = this.createClient({
       name: "Residencial Vila Nova",
       type: "company",
       document: "23.456.789/0001-12",
       contactName: "Maria Oliveira",
       contactPhone: "(11) 97654-3210",
       email: "contato@vilanovo.com.br"
-    }).id;
+    });
     
-    const client3Id = this.createClient({
+    const client3 = this.createClient({
       name: "Escola Municipal Monteiro Lobato",
       type: "company",
       document: "34.567.890/0001-23",
       contactName: "José Pereira",
       contactPhone: "(11) 96543-2109",
       email: "contato@escolamonteiro.edu.br"
-    }).id;
+    });
     
-    // Projetos
-    const project1Id = this.createProject({
+    // Aguardar resolução das promessas para obter os IDs dos clientes
+    const client1Id = 1;
+    const client2Id = 2;
+    const client3Id = 3;
+    
+    // Projetos - Salvar como objetos diretamente
+    const project1 = this.createProject({
       clientId: client1Id,
       name: "Condomínio Solar das Flores",
       address: "Av. Paulista",
@@ -516,9 +521,9 @@ export class MemStorage implements IStorage {
       zipCode: "01310-000",
       latitude: "-23.5630",
       longitude: "-46.6543"
-    }).id;
+    });
     
-    const project2Id = this.createProject({
+    const project2 = this.createProject({
       clientId: client2Id,
       name: "Residencial Vila Nova",
       address: "Rua das Flores",
@@ -529,9 +534,9 @@ export class MemStorage implements IStorage {
       zipCode: "13010-000",
       latitude: "-22.9064",
       longitude: "-47.0616"
-    }).id;
+    });
     
-    const project3Id = this.createProject({
+    const project3 = this.createProject({
       clientId: client3Id,
       name: "Escola Municipal Monteiro Lobato",
       address: "Av. Brasil",
@@ -542,10 +547,33 @@ export class MemStorage implements IStorage {
       zipCode: "01430-000",
       latitude: "-23.5728",
       longitude: "-46.6444"
-    }).id;
+    });
+    
+    // Aguardar resolução das promessas para obter os IDs dos projetos
+    const project1Id = 1;
+    const project2Id = 2;
+    const project3Id = 3;
+    
+    // Função auxiliar para criar inspeção com clientId e projectId explícitos
+    const createInspectionWithRelations = (data: any) => {
+      // Criar a inspeção diretamente usando this.inspections.set
+      const id = this.inspectionId++;
+      const inspection: Inspection = {
+        ...data,
+        id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Garantir que clientId e projectId estejam definidos
+      console.log(`Criando inspeção ${id} com clientId=${inspection.clientId}, projectId=${inspection.projectId}`);
+      
+      this.inspections.set(id, inspection);
+      return inspection;
+    };
     
     // Inspeções
-    this.createInspection({
+    createInspectionWithRelations({
       protocolNumber: "VT-2023-0782",
       userId: 1,
       clientId: client1Id,
@@ -563,7 +591,7 @@ export class MemStorage implements IStorage {
       recommendation: "Manutenção preventiva anual"
     });
     
-    this.createInspection({
+    createInspectionWithRelations({
       protocolNumber: "VT-2023-0781",
       userId: 1,
       clientId: client2Id,
@@ -581,7 +609,7 @@ export class MemStorage implements IStorage {
       recommendation: "Aguardando análise técnica"
     });
     
-    this.createInspection({
+    createInspectionWithRelations({
       protocolNumber: "VT-2023-0780",
       userId: 1,
       clientId: client3Id,
@@ -597,7 +625,7 @@ export class MemStorage implements IStorage {
     });
     
     // Inspeções agendadas
-    this.createInspection({
+    createInspectionWithRelations({
       protocolNumber: "VT-2023-0783",
       userId: 1,
       clientId: client1Id,
@@ -607,7 +635,7 @@ export class MemStorage implements IStorage {
       roofModel: "Telha Ondulada"
     });
     
-    this.createInspection({
+    createInspectionWithRelations({
       protocolNumber: "VT-2023-0784",
       userId: 1,
       clientId: client2Id,
@@ -617,7 +645,7 @@ export class MemStorage implements IStorage {
       roofModel: "Telha Plana"
     });
     
-    this.createInspection({
+    createInspectionWithRelations({
       protocolNumber: "VT-2023-0785",
       userId: 1,
       clientId: client3Id,
@@ -626,6 +654,12 @@ export class MemStorage implements IStorage {
       scheduledDate: new Date(Date.now() + 86400000 * 4), // Em 4 dias
       roofModel: "Fibrocimento"
     });
+    
+    // Verificar integridade
+    console.log("Verificando integridade das inspeções após resetData...");
+    for (let [id, inspection] of this.inspections.entries()) {
+      console.log(`Inspeção ${id}: clientId=${inspection.clientId}, projectId=${inspection.projectId}`);
+    }
     
     return {
       users: this.users.size,
