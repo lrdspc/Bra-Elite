@@ -20,6 +20,8 @@ interface Annotation {
   y: number;
   width?: number;
   height?: number;
+  endX?: number; // Para setas: posição final X
+  endY?: number; // Para setas: posição final Y
   text?: string;
   color: string;
   size: number;
@@ -71,6 +73,15 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   const [annotationText, setAnnotationText] = useState('');
   const [isAddingText, setIsAddingText] = useState(false);
   const [textPosition, setTextPosition] = useState({ x: 0, y: 0 });
+  
+  // Estados para o modo interativo (arrastar e soltar)
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [dragEndPos, setDragEndPos] = useState({ x: 0, y: 0 });
+  const [activeAnnotationIndex, setActiveAnnotationIndex] = useState<number | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
+  const [tempAnnotation, setTempAnnotation] = useState<Annotation | null>(null);
+  
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useMobile();
 
@@ -200,32 +211,131 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
     setIsAnnotating(false);
   };
   
-  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAnnotating || !imageContainerRef.current) return;
+  // Função para obter coordenadas percentuais relativas ao contêiner da imagem
+  const getRelativeCoordinates = (clientX: number, clientY: number) => {
+    if (!imageContainerRef.current) return { x: 0, y: 0 };
     
     const rect = imageContainerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100; // Coordenadas percentuais
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const x = ((clientX - rect.left) / rect.width) * 100; // Coordenadas percentuais
+    const y = ((clientY - rect.top) / rect.height) * 100;
+    
+    return { x, y };
+  };
+  
+  // Iniciar o processo de desenho interativo
+  const handleImageMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isAnnotating || !imageContainerRef.current) return;
+    
+    // Evitar conflito com o clique em uma anotação existente
+    if (activeAnnotationIndex !== null) {
+      setActiveAnnotationIndex(null);
+      return;
+    }
+    
+    // Iniciar o processo de arrastar para criar/redimensionar
+    const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
+    setIsDragging(true);
+    setDragStartPos({ x, y });
+    setDragEndPos({ x, y });
     
     if (annotationTool === 'text') {
       setIsAddingText(true);
       setTextPosition({ x, y });
       setAnnotationText('');
     } else {
-      // Para outras ferramentas, adicionamos diretamente
-      const newAnnotation: Annotation = {
+      // Criar uma anotação temporária que será atualizada durante o arrastar
+      const tempAnnotation: Annotation = {
         type: annotationTool,
         x: x,
         y: y,
         color: annotationColor,
         size: annotationSize,
-        // Valores padrão dependendo do tipo da anotação
-        ...(annotationTool === 'circle' && { width: 10, height: 10 }),
-        ...(annotationTool === 'rectangle' && { width: 15, height: 10 }),
-        ...(annotationTool === 'arrow' && { width: 10, height: 0 })
+        width: 0,
+        height: 0,
+        ...(annotationTool === 'arrow' && { endX: x, endY: y })
       };
       
-      setAnnotations([...annotations, newAnnotation]);
+      setTempAnnotation(tempAnnotation);
+    }
+  };
+  
+  // Atualizar durante o arrastar
+  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !isAnnotating || !tempAnnotation) return;
+    
+    const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
+    setDragEndPos({ x, y });
+    
+    // Atualizar a anotação temporária com base no movimento
+    if (tempAnnotation.type === 'arrow') {
+      setTempAnnotation({
+        ...tempAnnotation,
+        endX: x,
+        endY: y
+      });
+    } else if (tempAnnotation.type === 'circle') {
+      // Para círculo, usamos a distância desde o ponto inicial
+      const deltaX = Math.abs(x - tempAnnotation.x);
+      const deltaY = Math.abs(y - tempAnnotation.y);
+      const radius = Math.max(deltaX, deltaY);
+      
+      setTempAnnotation({
+        ...tempAnnotation,
+        width: radius * 2,
+        height: radius * 2
+      });
+    } else if (tempAnnotation.type === 'rectangle') {
+      // Para retângulo, calculamos a diferença entre pontos inicial e final
+      const width = Math.abs(x - tempAnnotation.x);
+      const height = Math.abs(y - tempAnnotation.y);
+      
+      setTempAnnotation({
+        ...tempAnnotation,
+        width,
+        height
+      });
+    }
+  };
+  
+  // Finalizar o desenho
+  const handleImageMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !isAnnotating) return;
+    
+    // Adicionar a anotação final se não for texto (texto é tratado separadamente)
+    if (tempAnnotation && tempAnnotation.type !== 'text') {
+      // Verificar se a anotação tem tamanho mínimo
+      const hasValidSize = 
+        (tempAnnotation.type === 'arrow' && 
+         tempAnnotation.endX !== undefined && 
+         tempAnnotation.endY !== undefined && 
+         (Math.abs(tempAnnotation.endX - tempAnnotation.x) > 2 || 
+          Math.abs(tempAnnotation.endY - tempAnnotation.y) > 2)) ||
+        (tempAnnotation.type !== 'arrow' && 
+         tempAnnotation.width !== undefined && 
+         tempAnnotation.height !== undefined && 
+         tempAnnotation.width > 2 && 
+         tempAnnotation.height > 2);
+      
+      if (hasValidSize) {
+        setAnnotations([...annotations, tempAnnotation]);
+      }
+    }
+    
+    // Resetar estado
+    setIsDragging(false);
+    setTempAnnotation(null);
+  };
+  
+  // Tratar click simples (compatibilidade com a versão anterior)
+  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isAnnotating || !imageContainerRef.current || isDragging) return;
+    
+    const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
+    
+    if (annotationTool === 'text') {
+      setIsAddingText(true);
+      setTextPosition({ x, y });
+      setAnnotationText('');
     }
   };
   
@@ -511,6 +621,10 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                   className="rounded-md overflow-hidden relative"
                   ref={imageContainerRef}
                   onClick={handleImageClick}
+                  onMouseDown={isAnnotating ? handleImageMouseDown : undefined}
+                  onMouseMove={isAnnotating ? handleImageMouseMove : undefined}
+                  onMouseUp={isAnnotating ? handleImageMouseUp : undefined}
+                  onMouseLeave={isAnnotating && isDragging ? handleImageMouseUp : undefined}
                 >
                   {/* Layer de imagem (base) */}
                   <img 
@@ -521,6 +635,80 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                   
                   {/* Camada de anotações */}
                   <div className="absolute inset-0 pointer-events-none">
+                  
+                    {/* Anotação temporária durante o desenho */}
+                    {isAnnotating && tempAnnotation && (
+                      <div 
+                        className="absolute"
+                        style={{
+                          left: `${tempAnnotation.x}%`,
+                          top: `${tempAnnotation.y}%`,
+                          color: tempAnnotation.color,
+                        }}
+                      >
+                        {tempAnnotation.type === 'circle' && (
+                          <div 
+                            className="rounded-full border-2 transform -translate-x-1/2 -translate-y-1/2" 
+                            style={{
+                              width: `${tempAnnotation.width}%`,
+                              height: `${tempAnnotation.width}%`,
+                              borderColor: tempAnnotation.color,
+                              borderWidth: tempAnnotation.size,
+                            }}
+                          />
+                        )}
+                        {tempAnnotation.type === 'rectangle' && (
+                          <div 
+                            className="border-2 transform -translate-x-1/2 -translate-y-1/2" 
+                            style={{
+                              width: `${tempAnnotation.width}%`,
+                              height: `${tempAnnotation.height}%`,
+                              borderColor: tempAnnotation.color,
+                              borderWidth: tempAnnotation.size,
+                            }}
+                          />
+                        )}
+                        {tempAnnotation.type === 'arrow' && tempAnnotation.endX !== undefined && tempAnnotation.endY !== undefined && (
+                          <svg
+                            style={{
+                              position: 'absolute',
+                              width: '100%',
+                              height: '100%',
+                              left: 0,
+                              top: 0,
+                              transform: 'translate(-50%, -50%)',
+                              zIndex: 5,
+                              pointerEvents: 'none',
+                            }}
+                          >
+                            <defs>
+                              <marker
+                                id={`arrowhead-${tempAnnotation.color.replace('#', '')}`}
+                                markerWidth="10"
+                                markerHeight="7"
+                                refX="0"
+                                refY="3.5"
+                                orient="auto"
+                              >
+                                <polygon
+                                  points="0 0, 10 3.5, 0 7"
+                                  fill={tempAnnotation.color}
+                                />
+                              </marker>
+                            </defs>
+                            <line
+                              x1="0"
+                              y1="0"
+                              x2={`${tempAnnotation.endX - tempAnnotation.x}%`}
+                              y2={`${tempAnnotation.endY - tempAnnotation.y}%`}
+                              stroke={tempAnnotation.color}
+                              strokeWidth={tempAnnotation.size}
+                              markerEnd={`url(#arrowhead-${tempAnnotation.color.replace('#', '')})`}
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    )}
                     {annotations.map((annotation, index) => (
                       <div 
                         key={index} 
@@ -553,19 +741,44 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                             }}
                           />
                         )}
-                        {annotation.type === 'arrow' && (
-                          <div 
-                            className="flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2"
+                        {annotation.type === 'arrow' && annotation.endX !== undefined && annotation.endY !== undefined && (
+                          <svg
+                            style={{
+                              position: 'absolute',
+                              width: '100%',
+                              height: '100%',
+                              left: 0,
+                              top: 0,
+                              transform: 'translate(-50%, -50%)',
+                              zIndex: 5,
+                              pointerEvents: 'none',
+                            }}
                           >
-                            <ArrowUp 
-                              style={{
-                                color: annotation.color,
-                                width: `${annotation.size * 10}px`,
-                                height: `${annotation.size * 10}px`,
-                                transform: 'rotate(45deg)',
-                              }}
+                            <defs>
+                              <marker
+                                id={`arrowhead-${annotation.color.replace('#', '')}-${index}`}
+                                markerWidth="10"
+                                markerHeight="7"
+                                refX="0"
+                                refY="3.5"
+                                orient="auto"
+                              >
+                                <polygon
+                                  points="0 0, 10 3.5, 0 7"
+                                  fill={annotation.color}
+                                />
+                              </marker>
+                            </defs>
+                            <line
+                              x1="0"
+                              y1="0"
+                              x2={`${annotation.endX - annotation.x}%`}
+                              y2={`${annotation.endY - annotation.y}%`}
+                              stroke={annotation.color}
+                              strokeWidth={annotation.size}
+                              markerEnd={`url(#arrowhead-${annotation.color.replace('#', '')}-${index})`}
                             />
-                          </div>
+                          </svg>
                         )}
                         {annotation.type === 'text' && (
                           <div 
