@@ -235,6 +235,14 @@ export class MemStorage implements IStorage {
       scheduledDate: new Date(Date.now() + 86400000 * 4), // In 4 days
       roofModel: "Fibrocimento"
     });
+    
+    // Garantir que todas as inspeções têm os campos clientId e projectId
+    console.log("Verificando integridade das inspeções...");
+    for (let [id, inspection] of this.inspections.entries()) {
+      if (!inspection.clientId || !inspection.projectId) {
+        console.warn(`Inspeção ${id} com dados incompletos: faltam clientId ou projectId`);
+      }
+    }
   }
 
   // User methods

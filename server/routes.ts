@@ -575,6 +575,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Rota para corrigir inspeções (apenas para desenvolvimento)
+  app.post("/api/dev/fix-inspections", isAuthenticated, async (req, res, next) => {
+    try {
+      const client1Id = 1; // Condomínio Solar das Flores
+      const client2Id = 2; // Residencial Vila Nova
+      const client3Id = 3; // Escola Municipal Monteiro Lobato
+      
+      const project1Id = 1; // Condomínio Solar das Flores
+      const project2Id = 2; // Residencial Vila Nova
+      const project3Id = 3; // Escola Municipal Monteiro Lobato
+      
+      // Mapear IDs de inspeções para clientes e projetos
+      const idMap = {
+        1: { clientId: client1Id, projectId: project1Id }, // VT-2023-0782
+        2: { clientId: client2Id, projectId: project2Id }, // VT-2023-0781
+        3: { clientId: client3Id, projectId: project3Id }, // VT-2023-0780
+        4: { clientId: client1Id, projectId: project1Id }, // VT-2023-0783
+        5: { clientId: client2Id, projectId: project2Id }, // VT-2023-0784
+        6: { clientId: client3Id, projectId: project3Id }  // VT-2023-0785
+      };
+      
+      const fixedInspections = [];
+      
+      // Atualizar cada inspeção
+      for (const [inspectionId, data] of Object.entries(idMap)) {
+        try {
+          const id = parseInt(inspectionId);
+          const inspection = await storage.getInspection(id);
+          
+          if (inspection) {
+            const updatedInspection = await storage.updateInspection(id, {
+              clientId: data.clientId,
+              projectId: data.projectId
+            });
+            
+            if (updatedInspection) {
+              fixedInspections.push(updatedInspection);
+            }
+          }
+        } catch (error) {
+          console.error(`Erro ao atualizar inspeção ${inspectionId}:`, error);
+        }
+      }
+      
+      res.json({ 
+        message: "Inspeções atualizadas com sucesso", 
+        fixedCount: fixedInspections.length,
+        fixedInspections 
+      });
+    } catch (error) {
+      console.error("Erro ao corrigir inspeções:", error);
+      next(error);
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
