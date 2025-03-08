@@ -25,6 +25,7 @@ interface Annotation {
   text?: string;
   color: string;
   size: number;
+  isPlacing?: boolean; // Estado para indicar que está no modo de colocação inicial
 }
 
 interface EvidenceImage {
@@ -222,125 +223,9 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
     return { x, y };
   };
   
-  // Iniciar o processo de desenho interativo
-  const handleImageMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAnnotating || !imageContainerRef.current) return;
-    
-    // Impedir comportamento padrão de arrastar a imagem
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Evitar conflito com o clique em uma anotação existente
-    if (activeAnnotationIndex !== null) {
-      setActiveAnnotationIndex(null);
-      return;
-    }
-    
-    // Iniciar o processo de arrastar para criar/redimensionar
-    const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
-    setIsDragging(true);
-    setDragStartPos({ x, y });
-    setDragEndPos({ x, y });
-    
-    if (annotationTool === 'text') {
-      setIsAddingText(true);
-      setTextPosition({ x, y });
-      setAnnotationText('');
-    } else {
-      // Criar uma anotação temporária que será atualizada durante o arrastar
-      const tempAnnotation: Annotation = {
-        type: annotationTool,
-        x: x,
-        y: y,
-        color: annotationColor,
-        size: annotationSize,
-        width: 0,
-        height: 0,
-        ...(annotationTool === 'arrow' && { endX: x, endY: y })
-      };
-      
-      setTempAnnotation(tempAnnotation);
-    }
-  };
-  
-  // Atualizar durante o arrastar
-  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !isAnnotating || !tempAnnotation) return;
-    
-    // Impedir comportamento padrão de arrastar a imagem
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
-    setDragEndPos({ x, y });
-    
-    // Atualizar a anotação temporária com base no movimento
-    if (tempAnnotation.type === 'arrow') {
-      setTempAnnotation({
-        ...tempAnnotation,
-        endX: x,
-        endY: y
-      });
-    } else if (tempAnnotation.type === 'circle') {
-      // Para círculo, usamos a distância desde o ponto inicial
-      const deltaX = Math.abs(x - tempAnnotation.x);
-      const deltaY = Math.abs(y - tempAnnotation.y);
-      const radius = Math.max(deltaX, deltaY);
-      
-      setTempAnnotation({
-        ...tempAnnotation,
-        width: radius * 2,
-        height: radius * 2
-      });
-    } else if (tempAnnotation.type === 'rectangle') {
-      // Para retângulo, calculamos a diferença entre pontos inicial e final
-      const width = Math.abs(x - tempAnnotation.x);
-      const height = Math.abs(y - tempAnnotation.y);
-      
-      setTempAnnotation({
-        ...tempAnnotation,
-        width,
-        height
-      });
-    }
-  };
-  
-  // Finalizar o desenho
-  const handleImageMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !isAnnotating) return;
-    
-    // Impedir comportamento padrão
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Adicionar a anotação final se não for texto (texto é tratado separadamente)
-    if (tempAnnotation && tempAnnotation.type !== 'text') {
-      // Verificar se a anotação tem tamanho mínimo
-      const hasValidSize = 
-        (tempAnnotation.type === 'arrow' && 
-         tempAnnotation.endX !== undefined && 
-         tempAnnotation.endY !== undefined && 
-         (Math.abs(tempAnnotation.endX - tempAnnotation.x) > 2 || 
-          Math.abs(tempAnnotation.endY - tempAnnotation.y) > 2)) ||
-        (tempAnnotation.type !== 'arrow' && 
-         tempAnnotation.width !== undefined && 
-         tempAnnotation.height !== undefined && 
-         tempAnnotation.width > 2 && 
-         tempAnnotation.height > 2);
-      
-      if (hasValidSize) {
-        setAnnotations([...annotations, tempAnnotation]);
-      }
-    }
-    
-    // Resetar estado
-    setIsDragging(false);
-    setTempAnnotation(null);
-  };
-  
-  // Tratar click simples (compatibilidade com a versão anterior)
+  // Tratar cliques para colocação de anotações - sistema de dois cliques
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAnnotating || !imageContainerRef.current || isDragging) return;
+    if (!isAnnotating || !imageContainerRef.current) return;
     
     // Impedir comportamento padrão ao clicar quando estamos anotando
     e.preventDefault();
@@ -348,10 +233,70 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
     
     const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
     
+    // Tratamento especial para texto
     if (annotationTool === 'text') {
       setIsAddingText(true);
       setTextPosition({ x, y });
       setAnnotationText('');
+      return;
+    }
+    
+    // Primeiro clique - começar a anotação
+    if (!tempAnnotation) {
+      // Criar uma nova anotação inicial
+      const initialAnnotation: Annotation = {
+        type: annotationTool,
+        x: x,
+        y: y,
+        color: annotationColor,
+        size: annotationSize,
+        width: 10, // Tamanho inicial para visualização
+        height: 10,
+        isPlacing: true,
+        ...(annotationTool === 'arrow' && { endX: x + 10, endY: y + 10 })
+      };
+      
+      setTempAnnotation(initialAnnotation);
+      return;
+    }
+    
+    // Segundo clique - finalizar a anotação
+    if (tempAnnotation && tempAnnotation.isPlacing) {
+      // Configurar tamanho/posição final baseado na posição do segundo clique
+      let finalAnnotation: Annotation = { ...tempAnnotation, isPlacing: false };
+      
+      if (annotationTool === 'arrow') {
+        finalAnnotation = {
+          ...finalAnnotation,
+          endX: x,
+          endY: y
+        };
+      } else if (annotationTool === 'circle') {
+        // Para círculo, usamos a distância desde o ponto inicial
+        const deltaX = Math.abs(x - tempAnnotation.x);
+        const deltaY = Math.abs(y - tempAnnotation.y);
+        const radius = Math.max(deltaX, deltaY);
+        
+        finalAnnotation = {
+          ...finalAnnotation,
+          width: radius * 2,
+          height: radius * 2
+        };
+      } else if (annotationTool === 'rectangle') {
+        // Para retângulo, calculamos a diferença entre pontos inicial e final
+        const width = Math.abs(x - tempAnnotation.x);
+        const height = Math.abs(y - tempAnnotation.y);
+        
+        finalAnnotation = {
+          ...finalAnnotation,
+          width: width,
+          height: height
+        };
+      }
+      
+      // Adicionar à lista de anotações
+      setAnnotations([...annotations, finalAnnotation]);
+      setTempAnnotation(null);
     }
   };
   
@@ -637,10 +582,6 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                   className="rounded-md overflow-hidden relative"
                   ref={imageContainerRef}
                   onClick={handleImageClick}
-                  onMouseDown={isAnnotating ? handleImageMouseDown : undefined}
-                  onMouseMove={isAnnotating ? handleImageMouseMove : undefined}
-                  onMouseUp={isAnnotating ? handleImageMouseUp : undefined}
-                  onMouseLeave={isAnnotating && isDragging ? handleImageMouseUp : undefined}
                 >
                   {/* Layer de imagem (base) */}
                   <img 
@@ -651,7 +592,26 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                   
                   {/* Camada de anotações */}
                   <div className="absolute inset-0 pointer-events-none">
-                  
+                    
+                    {/* Mensagem de instrução */}
+                    {isAnnotating && !tempAnnotation && (
+                      <div className="absolute top-2 left-0 right-0 flex justify-center">
+                        <div className="bg-primary/80 text-primary-foreground rounded-md px-3 py-1 shadow text-sm font-medium">
+                          Clique primeiro para posicionar, depois para definir o tamanho/direção
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Mensagem de segundo clique */}
+                    {isAnnotating && tempAnnotation?.isPlacing && (
+                      <div className="absolute bottom-2 left-0 right-0 flex justify-center">
+                        <div className="bg-primary/80 text-primary-foreground rounded-md px-3 py-1 shadow text-sm font-medium">
+                          Agora clique para finalizar a {annotationTool === 'arrow' ? 'seta' : 
+                                                       annotationTool === 'circle' ? 'círculo' : 'retângulo'}
+                        </div>
+                      </div>
+                    )}
+                    
                     {/* Anotação temporária durante o desenho */}
                     {isAnnotating && tempAnnotation && (
                       <div 
@@ -854,6 +814,9 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                 {/* Barra de ferramentas de anotação */}
                 {isAnnotating && (
                   <div className="mt-2 p-2 bg-secondary/50 rounded-md">
+                    <div className="text-sm text-muted-foreground mb-2 bg-background/80 p-2 rounded-md">
+                      <p><strong>Instruções:</strong> Selecione uma ferramenta abaixo. Para desenhar, clique primeiro para colocar o ponto inicial, depois clique novamente para finalizar.</p>
+                    </div>
                     <div className="flex items-center flex-wrap gap-2">
                       <TooltipProvider>
                         <Tooltip>
