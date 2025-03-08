@@ -22,9 +22,13 @@ const KpiCard: React.FC<KpiCardProps> = ({
   return (
     <Card className={cn("w-full overflow-hidden h-full", className)}>
       <CardContent className="p-2 md:p-3">
-        <p className="text-muted-foreground text-xs font-medium truncate max-w-full">{title}</p>
-        <p className="text-base font-bold mt-1 truncate max-w-full">{value}</p>
+        {/* Título - texto truncado se necessário */}
+        <p className="text-muted-foreground text-xs font-medium truncate max-w-full overflow-hidden text-ellipsis">{title}</p>
         
+        {/* Valor - fonte maior em desktop, mais compacta em mobile */}
+        <p className="text-base sm:text-lg font-bold mt-1 truncate max-w-full overflow-hidden text-ellipsis">{value}</p>
+        
+        {/* Informação de mudança/variação */}
         {change && (
           <div className={cn(
             "flex items-center mt-1 text-xs",
@@ -37,7 +41,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
                 <ArrowDown className="h-3 w-3" />
               )}
             </div>
-            <span className="truncate max-w-full">{change.value}</span>
+            <span className="truncate max-w-full overflow-hidden text-ellipsis">{change.value}</span>
           </div>
         )}
       </CardContent>

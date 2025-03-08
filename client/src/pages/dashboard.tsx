@@ -114,19 +114,19 @@ const DashboardPage: React.FC = () => {
       {/* Dashboard Content */}
       <div className="px-3 py-2 md:p-6">
         {/* KPI Row - Otimizado para mobile (2 colunas) e desktop (4 colunas) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 md:mb-6" style={{minWidth: 0, width: '100%'}}>
-          <div className="w-full" style={{minWidth: 0, overflow: 'hidden'}}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 md:mb-6">
+          <div className="responsive-card">
             <KpiCard 
               title="Vistorias do Mês" 
               value={isLoading ? "..." : dashboardData?.totalInspections || 0}
               change={{
-                value: `${dashboardData?.changeFromLastMonth || 0}% vs último mês`,
+                value: `${dashboardData?.changeFromLastMonth || 0}% vs mês ant.`,
                 positive: (dashboardData?.changeFromLastMonth || 0) > 0
               }}
             />
           </div>
           
-          <div className="w-full" style={{minWidth: 0, overflow: 'hidden'}}>
+          <div className="responsive-card">
             <KpiCard 
               title="Pendentes" 
               value={isLoading ? "..." : dashboardData?.pendingCount || 0}
@@ -137,23 +137,23 @@ const DashboardPage: React.FC = () => {
             />
           </div>
           
-          <div className="w-full" style={{minWidth: 0, overflow: 'hidden'}}>
+          <div className="responsive-card">
             <KpiCard 
               title="Tempo Médio" 
               value={isLoading ? "..." : `${dashboardData?.avgTimeInHours.toFixed(1)}h`}
               change={{
-                value: `${dashboardData?.avgTimeImprovement * 60}min mais rápido`,
+                value: `${dashboardData?.avgTimeImprovement ? (dashboardData?.avgTimeImprovement * 60).toFixed(0) : 0}min+`,
                 positive: true
               }}
             />
           </div>
           
-          <div className="w-full" style={{minWidth: 0, overflow: 'hidden'}}>
+          <div className="responsive-card">
             <KpiCard 
               title="Taxa de Procedência" 
               value={isLoading ? "..." : `${dashboardData?.approvalRate}%`}
               change={{
-                value: `${dashboardData?.procedenteCount} procedentes`,
+                value: `${dashboardData?.procedenteCount} aprovações`,
                 positive: true
               }}
             />
