@@ -1,56 +1,82 @@
 # Guia de Contribuição
 
-Obrigado por considerar contribuir para o PWA de Vistorias Técnicas da Brasilit! Este documento fornece diretrizes e padrões para ajudar você a contribuir de forma eficaz.
+Obrigado pelo interesse em contribuir com o PWA de Vistorias Técnicas Brasilit! Este documento fornece diretrizes para contribuir efetivamente com o projeto.
 
-## Processo de Contribuição
+## Ambiente de desenvolvimento
 
-1. Verifique as issues existentes ou crie uma nova para discutir a funcionalidade que pretende implementar
-2. Faça um fork do repositório
-3. Crie uma branch para sua alteração (`git checkout -b feature/nome-da-funcionalidade`)
-4. Implemente suas alterações
-5. Teste suas alterações, garantindo compatibilidade com recursos offline
-6. Crie um Pull Request
+1. Certifique-se de usar Node.js versão 20 ou superior (conforme especificado no arquivo `.nvmrc`)
+2. Clone o repositório
+3. Instale as dependências:
+   ```bash
+   npm install
+   ```
+4. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
 
-## Padrões de Código
+## Fluxo de trabalho de contribuição
 
-### Convenções de Nomenclatura
+1. Crie um fork do repositório principal
+2. Crie uma branch a partir da main com um nome descritivo:
+   ```bash
+   git checkout -b feature/nome-descritivo
+   ```
+3. Faça suas alterações seguindo o estilo de código do projeto
+4. Certifique-se de que o código passa em todos os testes:
+   ```bash
+   npm run test
+   ```
+5. Execute a verificação estática de tipos:
+   ```bash
+   npm run type-check
+   ```
+6. Execute o linter para garantir a qualidade do código:
+   ```bash
+   npm run lint
+   ```
+7. Faça commits com mensagens claras e descritivas
+8. Envie a branch para seu fork:
+   ```bash
+   git push origin feature/nome-descritivo
+   ```
+9. Abra um Pull Request para a branch main do repositório principal
 
-- Utilize camelCase para variáveis e funções em JavaScript/TypeScript
-- Utilize PascalCase para componentes React e nomes de classes
-- Utilize kebab-case para arquivos CSS e nomes de classes CSS
+## Padrões de código
 
-### Estilo de Código
+- **TypeScript**: Use tipos estáticos sempre que possível, evite `any`
+- **React**: Utilize componentes funcionais e hooks
+- **Estilo**: Siga as diretrizes de design existentes usando TailwindCSS e Shadcn/UI
+- **Estrutura**: Mantenha a organização de arquivos existente, com componentes em `src/components`, páginas em `src/pages`, etc.
+- **PWA**: Mantenha sempre a compatibilidade offline e as características do PWA
 
-- Usamos ESLint e Prettier para manter a consistência do código
-- Execute `npm run lint` antes de submeter suas alterações
-- Mantenha arquivos React/TSX dentro de 400 linhas quando possível
-- Adicione comentários para código complexo ou não óbvio
+## Funcionalidades offline
 
-### TypeScript
+O foco principal deste aplicativo é o funcionamento adequado em cenários sem conexão. Ao adicionar novos recursos:
 
-- Sempre defina tipos para props de componentes e parâmetros de função
-- Evite o uso de `any`, prefira definir interfaces ou tipos específicos
-- Utilize nomes descritivos para interfaces e tipos
+1. Certifique-se de que todos os dados são armazenados localmente usando IndexedDB
+2. Implemente a sincronização em segundo plano quando a conexão for restaurada
+3. Trate casos de conflitos de sincronização adequadamente
+4. Teste o recurso em modo offline
 
 ## Testes
 
-- Teste todas as funcionalidades em ambos os modos: online e offline
-- Verifique a responsividade em múltiplos tamanhos de tela (mobile, tablet, desktop)
-- Para funcionalidades offline, teste o fluxo completo de sincronização
+- Desenvolva testes unitários para componentes e funções
+- Adicione testes de integração para fluxos de usuário importantes
+- Teste o comportamento offline de suas alterações
 
-## Compromisso com a Qualidade
+## Documentação
 
-- Priorize desempenho, especialmente em dispositivos móveis
-- Otimize o tamanho dos bundles e assets
-- Mantenha a acessibilidade (WCAG 2.1 AA)
-- Garanta compatibilidade com os navegadores principais (Chrome, Safari, Firefox, Edge)
+- Atualize a documentação existente conforme necessário
+- Documente novas funcionalidades e comportamentos
+- Inclua comentários explicativos no código para partes complexas
 
-## Revisão de Código
+## Segurança
 
-- Todos os Pull Requests serão revisados por pelo menos um mantenedor do projeto
-- Esteja aberto a feedback e disposto a fazer alterações quando solicitado
-- Responda a comentários de revisão de forma construtiva
+- Não cometa credenciais, tokens ou segredos
+- Valide todas as entradas do usuário
+- Siga as melhores práticas de segurança para aplicativos web
 
-## Suporte
+## Contato
 
-Se você tiver dúvidas ou precisar de ajuda, entre em contato com a equipe de desenvolvimento da Brasilit.
+Para dúvidas ou discussões, entre em contato com o time de desenvolvimento pelo e-mail: dev@brasilit.com.br

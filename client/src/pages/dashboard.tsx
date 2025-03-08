@@ -113,51 +113,56 @@ const DashboardPage: React.FC = () => {
 
       {/* Dashboard Content */}
       <div className="px-3 py-2 md:p-6">
+        {/* Título da seção mobile */}
+        <div className="flex items-center justify-between mb-3 md:hidden">
+          <h2 className="text-sm font-semibold text-muted-foreground">Resumo das Atividades</h2>
+          <button 
+            onClick={() => refetch()}
+            className="text-xs text-primary flex items-center gap-1 rounded-full bg-primary/5 px-2 py-1 hover:bg-primary/10 transition-colors"
+            aria-label="Atualizar dados"
+          >
+            <RefreshCw className="h-3 w-3" />
+            <span>Atualizar</span>
+          </button>
+        </div>
+        
         {/* KPI Row - Otimizado para mobile (2 colunas) e desktop (4 colunas) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 md:mb-6">
-          <div className="responsive-card">
-            <KpiCard 
-              title="Vistorias do Mês" 
-              value={isLoading ? "..." : dashboardData?.totalInspections || 0}
-              change={{
-                value: `${dashboardData?.changeFromLastMonth || 0}% vs mês ant.`,
-                positive: (dashboardData?.changeFromLastMonth || 0) > 0
-              }}
-            />
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 md:mb-6">
+          <KpiCard 
+            title="Vistorias do Mês" 
+            value={isLoading ? "..." : dashboardData?.totalInspections || 0}
+            change={{
+              value: `${dashboardData?.changeFromLastMonth || 0}% vs mês ant.`,
+              positive: (dashboardData?.changeFromLastMonth || 0) > 0
+            }}
+          />
           
-          <div className="responsive-card">
-            <KpiCard 
-              title="Pendentes" 
-              value={isLoading ? "..." : dashboardData?.pendingCount || 0}
-              change={{
-                value: `${dashboardData?.criticalPending || 0} críticas`,
-                positive: false
-              }}
-            />
-          </div>
+          <KpiCard 
+            title="Pendentes" 
+            value={isLoading ? "..." : dashboardData?.pendingCount || 0}
+            change={{
+              value: `${dashboardData?.criticalPending || 0} críticas`,
+              positive: false
+            }}
+          />
           
-          <div className="responsive-card">
-            <KpiCard 
-              title="Tempo Médio" 
-              value={isLoading ? "..." : `${dashboardData?.avgTimeInHours.toFixed(1)}h`}
-              change={{
-                value: `${dashboardData?.avgTimeImprovement ? (dashboardData?.avgTimeImprovement * 60).toFixed(0) : 0}min+`,
-                positive: true
-              }}
-            />
-          </div>
+          <KpiCard 
+            title="Tempo Médio" 
+            value={isLoading ? "..." : `${dashboardData?.avgTimeInHours.toFixed(1)}h`}
+            change={{
+              value: `${dashboardData?.avgTimeImprovement ? (dashboardData?.avgTimeImprovement * 60).toFixed(0) : 0}min+`,
+              positive: true
+            }}
+          />
           
-          <div className="responsive-card">
-            <KpiCard 
-              title="Taxa de Procedência" 
-              value={isLoading ? "..." : `${dashboardData?.approvalRate}%`}
-              change={{
-                value: `${dashboardData?.procedenteCount} aprovações`,
-                positive: true
-              }}
-            />
-          </div>
+          <KpiCard 
+            title="Taxa de Procedência" 
+            value={isLoading ? "..." : `${dashboardData?.approvalRate}%`}
+            change={{
+              value: `${dashboardData?.procedenteCount} aprovações`,
+              positive: true
+            }}
+          />
         </div>
 
         {/* Quick Access - Movido para cima em dispositivos móveis para acesso mais rápido */}
