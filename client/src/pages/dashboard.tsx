@@ -112,9 +112,9 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Dashboard Content */}
-      <div className="p-2 sm:p-3 md:p-6">
+      <div className="px-3 py-2 md:p-6">
         {/* KPI Row - Otimizado para mobile (2 colunas) e desktop (4 colunas) */}
-        <div className="responsive-container grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-3 md:mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 md:mb-6">
           <div className="w-full min-w-0">
             <KpiCard 
               title="Vistorias do Mês" 
@@ -123,7 +123,6 @@ const DashboardPage: React.FC = () => {
                 value: `${dashboardData?.changeFromLastMonth || 0}% vs último mês`,
                 positive: (dashboardData?.changeFromLastMonth || 0) > 0
               }}
-              className="responsive-card text-sm md:text-base"
             />
           </div>
           
@@ -135,7 +134,6 @@ const DashboardPage: React.FC = () => {
                 value: `${dashboardData?.criticalPending || 0} críticas`,
                 positive: false
               }}
-              className="responsive-card text-sm md:text-base"
             />
           </div>
           
@@ -147,7 +145,6 @@ const DashboardPage: React.FC = () => {
                 value: `${dashboardData?.avgTimeImprovement * 60}min mais rápido`,
                 positive: true
               }}
-              className="responsive-card text-sm md:text-base"
             />
           </div>
           
@@ -159,7 +156,6 @@ const DashboardPage: React.FC = () => {
                 value: `${dashboardData?.procedenteCount} procedentes`,
                 positive: true
               }}
-              className="responsive-card text-sm md:text-base"
             />
           </div>
         </div>

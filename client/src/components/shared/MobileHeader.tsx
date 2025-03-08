@@ -127,8 +127,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
     <>
       <header 
         ref={headerRef}
-        className={`bg-white shadow-sm fixed left-0 right-0 z-30 md:hidden optimize-gpu transition-all duration-200 ease-out ${
-          isHeaderVisible ? 'top-0 opacity-100' : '-top-full opacity-0'
+        className={`bg-white shadow-sm fixed left-0 right-0 z-30 md:hidden ${
+          isHeaderVisible ? 'block' : 'hidden'
         }`}
       >
         {!showSearch ? (
