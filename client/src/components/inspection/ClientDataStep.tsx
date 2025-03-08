@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { Search, MapPin, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDocumentNumber, formatPhoneNumber } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { isOnline } from '@/lib/pwa';
 
 interface ClientDataStepProps {
   formData: any;
@@ -20,7 +22,9 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [coordinates, setCoordinates] = useState<{lat: string, lng: string} | null>(null);
+  const { toast } = useToast();
 
   // Fetch clients for dropdown
   const { data: clients } = useQuery({
@@ -143,6 +147,82 @@ const ClientDataStep: React.FC<ClientDataStepProps> = ({ formData, updateFormDat
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     updateFormData({ [name]: value });
+  };
+
+  // Função para obter endereço a partir das coordenadas GPS
+  const handleGetLocationAddress = async () => {
+    if (!coordinates) {
+      toast({
+        title: "Localização não disponível",
+        description: "Não foi possível obter sua localização atual.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoadingLocation(true);
+    try {
+      // Verificar se estamos online
+      if (!isOnline()) {
+        toast({
+          title: "Sem conexão",
+          description: "Não é possível obter o endereço sem conexão com a internet.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Usar API de geocodificação reversa
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordinates.lat}&lon=${coordinates.lng}&addressdetails=1`,
+        {
+          headers: {
+            'Accept-Language': 'pt-BR'
+          }
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (data && data.address) {
+        // Extrair informações do endereço
+        const { 
+          road, 
+          house_number, 
+          suburb, 
+          city, 
+          town, 
+          state, 
+          postcode,
+          neighbourhood
+        } = data.address;
+        
+        updateFormData({
+          address: road || '',
+          number: house_number || '',
+          neighborhood: neighbourhood || suburb || '',
+          city: city || town || '',
+          state: state || '',
+          zipCode: postcode || '',
+          latitude: coordinates.lat,
+          longitude: coordinates.lng
+        });
+        
+        toast({
+          title: "Localização obtida",
+          description: "Endereço preenchido com base na sua localização atual.",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching address from coordinates:", error);
+      toast({
+        title: "Erro ao obter endereço",
+        description: "Não foi possível converter sua localização em endereço.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingLocation(false);
+    }
   };
 
   return (

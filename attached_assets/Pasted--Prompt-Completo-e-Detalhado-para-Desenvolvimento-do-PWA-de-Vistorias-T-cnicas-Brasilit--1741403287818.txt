@@ -1,0 +1,201 @@
+# Prompt Completo e Detalhado para Desenvolvimento do PWA de Vistorias Técnicas Brasilit
+
+---
+
+## Visão Geral do Projeto
+
+Você desenvolverá um Progressive Web App (PWA) avançado para a realização de vistorias técnicas em telhados com telhas Brasilit. O sistema terá duas versões principais:
+
+- **Versão Desktop:** Dashboard completo, robusto e detalhado, com todas as funcionalidades administrativas.
+- **Versão Mobile:** Interface simplificada, dinâmica e adaptada para uso em campo, especialmente em condições adversas (como em cima de telhados).
+
+Ambas versões devem estar perfeitamente sincronizadas e permitir o funcionamento offline completo.
+
+---
+
+## Estrutura Geral do Sistema
+
+O sistema será composto pelos seguintes módulos principais:
+
+### 1. Dashboard Principal (Desktop)
+- Painel inicial com métricas gerais:
+  - Total de vistorias agendadas, pendentes e concluídas.
+  - Tempo médio das vistorias.
+  - Não conformidades mais frequentes (gráficos interativos).
+  - Mapa interativo com localização das visitas agendadas.
+- Gestão completa de clientes:
+  - Cadastro, edição e histórico completo de interações.
+  - Pesquisa avançada por nome, endereço, cidade ou protocolo.
+- Calendário visual de agendamentos:
+  - Visualização mensal/semanal/diária.
+  - Arrastar e soltar para reagendamento rápido.
+- Editor online integrado (estilo Word):
+  - Após gerar o relatório automaticamente com os dados coletados, o usuário pode editar livremente todo o conteúdo do relatório diretamente no navegador.
+  - Redimensionar imagens, adicionar novos textos e ajustar formatação livremente.
+  - Exportação final nos formatos DOCX e PDF.
+
+---
+
+## Fluxo Detalhado do Atendimento (Passo a Passo)
+
+### Etapa 1: Criação da Visita Técnica
+
+O técnico pode criar uma visita técnica de duas formas:
+
+**Modo Escritório (Desktop):**
+- Seleciona "Nova Vistoria" no dashboard principal.
+- Seleciona cliente existente ou cadastra um novo cliente:
+  - Nome completo
+  - Tipo de empreendimento (Residencial, Comercial ou Industrial)
+  - Cidade e Estado
+  - Endereço completo
+- Define data/hora prevista da visita.
+- Preenche protocolo FAR e assunto da reclamação.
+- Seleciona modelo da telha, quantidade e área coberta estimada.
+
+### Etapa 2: Execução da Vistoria em Campo (Mobile)
+
+Ao chegar ao local da vistoria, o técnico abre o aplicativo móvel:
+
+**Início da Vistoria**
+- Botão "Iniciar Atendimento":
+  - Registra automaticamente data/hora inicial.
+  - Captura coordenadas GPS automaticamente para preenchimento automático do endereço via geolocalização reversa.
+
+**Escolha do Modo de Preenchimento:**
+
+**Modo Guiado (Assistente Interativo):**
+- Interface sequencial com perguntas claras e objetivas:
+  
+  **Passo a passo guiado:**
+  
+  **Tela inicial:** Confirmação dos dados básicos:
+    - Cliente: [Nome] (campo editável)
+    - Endereço: [Endereço] – botão "Usar localização GPS atual" para preenchimento automático via geolocalização reversa.
+
+  **Tela seguinte:** Informações técnicas:
+    - Protocolo FAR
+    - Assunto da reclamação
+    - Tipo de empreendimento (Residencial/Comercial/Industrial)
+  
+  **Próxima tela:** Informações do produto:
+    - Modelo das telhas (seleção visual simplificada)
+    - Quantidade total de telhas
+    - Área coberta aproximada
+  
+  **Checklist interativo das não conformidades:**
+    - Lista visual das 14 não conformidades possíveis
+    - Seleção múltipla através de checkboxes grandes
+    - Para cada item selecionado:
+      - Pergunta automática: "Deseja adicionar observações ou fotos?"
+      - Campo opcional para observações rápidas por voz ou texto
+      - Opção direta para captura imediata de fotos
+  
+  **Finalização da vistoria guiada:**
+    - Campo opcional para observações gerais adicionais
+    - Botão "Finalizar Vistoria"
+    - Registro automático do horário final
+  
+**Modo Tradicional (Formulário Completo):**
+- Formulário único com rolagem vertical contendo todos os campos visíveis simultaneamente:
+  - Dados básicos do cliente
+  - Dados técnicos completos do produto
+  - Checklist completo das não conformidades com campos adicionais visíveis simultaneamente
+- Captura direta de fotos integradas aos campos correspondentes
+- Salvamento automático periódico dos dados inseridos
+
+---
+
+### Etapa 3: Sincronização Automática dos Dados
+
+Após finalização da vistoria em campo:
+- Os dados são armazenados localmente no dispositivo móvel usando IndexedDB.
+- Quando houver conexão disponível, os dados são sincronizados automaticamente com o servidor central.
+- O sistema resolve conflitos automaticamente priorizando os dados mais recentes.
+
+---
+
+### Etapa 4: Geração Automática do Relatório Técnico
+
+Após sincronização dos dados coletados:
+
+1. O sistema utiliza o template Word pré-definido com textos fixos conforme modelo fornecido pela Brasilit.
+2. Substitui automaticamente as variáveis coletadas no formulário pelos valores inseridos pelo técnico.
+3. Insere textos completos das não conformidades selecionadas na seção "Análise Técnica".
+4. Insere apenas os títulos das não conformidades na seção "Conclusão".
+5. Gera o documento final no formato DOCX exatamente conforme especificações fornecidas.
+
+---
+
+### Etapa 4: Edição Avançada Online (Desktop/Mobile)
+
+Após a geração automática inicial do relatório:
+- O documento é aberto em um editor online integrado ao PWA semelhante ao Microsoft Word Online (exemplo recomendado: ONLYOFFICE Docs).
+- O técnico pode editar livremente todo o conteúdo gerado:
+   - Adicionar novos textos ou observações adicionais;
+   - Redimensionar imagens capturadas durante a vistoria;
+   - Ajustar formatação livremente mantendo estilo visual original;
+   - Inserir novos elementos como tabelas ou listas adicionais;
+   - Salvar alterações continuamente.
+
+---
+
+### Etapa 4: Exportação Final e Compartilhamento
+
+Após concluir as edições necessárias no editor interno:
+- O documento pode ser exportado diretamente nos formatos DOCX ou PDF;
+- Opção direta para envio por email ao cliente diretamente pelo aplicativo;
+- Histórico completo fica armazenado no cadastro do cliente para futuras consultas.
+
+---
+
+## Recursos Técnicos Avançados Sugeridos
+
+Para garantir máxima eficiência operacional:
+
+1. **Geolocalização Automática:**  
+   Preenchimento automático do endereço usando GPS via geocodificação reversa.
+
+2. **Captura Inteligente de Imagens:**  
+   Compressão automática antes do upload;  
+   Organização automática por categoria no relatório final.
+
+3. **Interface Adaptativa:**  
+   Versão mobile otimizada com botões grandes, alto contraste e suporte a comandos por voz.
+
+4. **Notificações Integradas:**  
+   Alertas automáticos sobre vistorias agendadas, pendências e sincronizações realizadas.
+
+5. **Dashboard Analítico Completo:**  
+   Na versão desktop, gráficos detalhados sobre desempenho por técnico, tipos mais frequentes de problemas identificados, tempo médio das visitas técnicas e mapa interativo das regiões atendidas.
+
+6. **Editor Online Integrado Gratuito:**  
+   Integração com ONLYOFFICE Docs Community Edition (open source/gratuito) permitindo edição completa online após geração inicial dos relatórios.
+
+7. **Exportação Flexível:**  
+   Permitir exportação dos relatórios finais em formatos DOCX e PDF diretamente pela interface web.
+
+---
+
+## Critérios Essenciais para Validação Final
+
+Ao implementar este PWA certifique-se que:
+
+- Todos os campos obrigatórios estejam validados antes da geração;
+- Os textos fixos jamais sejam alterados pelo usuário;
+- A interface mobile seja intuitiva, dinâmica e fácil mesmo em situações adversas;
+- O documento final gerado corresponda exatamente às especificações fornecidas;
+- A sincronização seja robusta mesmo após longo período offline;
+- A experiência desktop ofereça todas as funcionalidades administrativas necessárias;
+- O editor online permita edição completa pós-geração mantendo fidelidade visual ao template original.
+
+Este escopo detalhado orientará precisamente a construção técnica do PWA garantindo máxima qualidade na entrega final.
+
+Citations:
+[1] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/10772005/a16f3841-6844-4938-96e0-e051a9bc4f2f/TST-1740277655325-cliente.docx
+[2] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/10772005/6ab360e1-168e-42a5-b06f-93f117caf748/especificacao-sistema.md
+[3] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/10772005/97587e25-3d49-4112-a96d-b168513e99dd/prompt-geracao-relatorio.md
+[4] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/10772005/9d96d911-c715-4452-950a-d5a3902fa47d/exemplo-relatorio-preenchido.md
+[5] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/10772005/e45a131f-9e7f-4b6a-bbbc-dbf73a57409b/estrutura-formulario.md
+[6] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/10772005/9f229887-1c67-40a7-a228-480be718685e/template-formatacao.md
+[7] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/10772005/52b71ef5-efb0-44b4-b577-1722daf7dd5c/nao-conformidades-completo.json
