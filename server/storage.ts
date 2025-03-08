@@ -38,6 +38,9 @@ export interface IStorage {
   createEvidence(evidence: InsertEvidence): Promise<Evidence>;
   updateEvidence(id: number, evidence: Partial<InsertEvidence>): Promise<Evidence | undefined>;
   deleteEvidence(id: number): Promise<boolean>;
+  
+  // System methods
+  resetData(): Promise<{users: number, clients: number, projects: number, inspections: number, evidences: number}>;
 }
 
 export class MemStorage implements IStorage {
@@ -435,6 +438,202 @@ export class MemStorage implements IStorage {
   
   async deleteEvidence(id: number): Promise<boolean> {
     return this.evidences.delete(id);
+  }
+  
+  // System methods
+  async resetData(): Promise<{users: number, clients: number, projects: number, inspections: number, evidences: number}> {
+    // Limpar todos os dados atuais
+    this.users.clear();
+    this.clients.clear();
+    this.projects.clear();
+    this.inspections.clear();
+    this.evidences.clear();
+    
+    // Resetar os contadores de IDs
+    this.userId = 1;
+    this.clientId = 1;
+    this.projectId = 1;
+    this.inspectionId = 1;
+    this.evidenceId = 1;
+    
+    // Recriar dados iniciais
+    // Usuário técnico inicial
+    this.createUser({
+      username: "tecnico",
+      password: "senha123",
+      name: "João da Silva",
+      email: "joao@brasilit.com",
+      role: "technician"
+    });
+    
+    // Usuário administrador
+    this.createUser({
+      username: "admin",
+      password: "admin123",
+      name: "Admin",
+      email: "admin@brasilit.com",
+      role: "admin"
+    });
+    
+    // Clientes
+    const client1Id = this.createClient({
+      name: "Condomínio Solar das Flores",
+      type: "company",
+      document: "12.345.678/0001-90",
+      contactName: "Pedro Santos",
+      contactPhone: "(11) 98765-4321",
+      email: "contato@solardasflores.com.br"
+    }).id;
+    
+    const client2Id = this.createClient({
+      name: "Residencial Vila Nova",
+      type: "company",
+      document: "23.456.789/0001-12",
+      contactName: "Maria Oliveira",
+      contactPhone: "(11) 97654-3210",
+      email: "contato@vilanovo.com.br"
+    }).id;
+    
+    const client3Id = this.createClient({
+      name: "Escola Municipal Monteiro Lobato",
+      type: "company",
+      document: "34.567.890/0001-23",
+      contactName: "José Pereira",
+      contactPhone: "(11) 96543-2109",
+      email: "contato@escolamonteiro.edu.br"
+    }).id;
+    
+    // Projetos
+    const project1Id = this.createProject({
+      clientId: client1Id,
+      name: "Condomínio Solar das Flores",
+      address: "Av. Paulista",
+      number: "1000",
+      complement: "Bloco A",
+      neighborhood: "Bela Vista",
+      city: "São Paulo",
+      state: "SP",
+      zipCode: "01310-000",
+      latitude: "-23.5630",
+      longitude: "-46.6543"
+    }).id;
+    
+    const project2Id = this.createProject({
+      clientId: client2Id,
+      name: "Residencial Vila Nova",
+      address: "Rua das Flores",
+      number: "123",
+      neighborhood: "Centro",
+      city: "Campinas",
+      state: "SP",
+      zipCode: "13010-000",
+      latitude: "-22.9064",
+      longitude: "-47.0616"
+    }).id;
+    
+    const project3Id = this.createProject({
+      clientId: client3Id,
+      name: "Escola Municipal Monteiro Lobato",
+      address: "Av. Brasil",
+      number: "500",
+      neighborhood: "Jardim América",
+      city: "São Paulo",
+      state: "SP",
+      zipCode: "01430-000",
+      latitude: "-23.5728",
+      longitude: "-46.6444"
+    }).id;
+    
+    // Inspeções
+    this.createInspection({
+      protocolNumber: "VT-2023-0782",
+      userId: 1,
+      clientId: client1Id,
+      projectId: project1Id,
+      status: "completed",
+      scheduledDate: new Date("2023-04-22T14:30:00"),
+      startTime: new Date("2023-04-22T14:30:00"),
+      endTime: new Date("2023-04-22T16:00:00"),
+      roofModel: "Telha Ondulada",
+      quantity: 250,
+      area: 500,
+      installationDate: new Date("2021-08-15"),
+      warranty: "7",
+      conclusion: "Aprovado",
+      recommendation: "Manutenção preventiva anual"
+    });
+    
+    this.createInspection({
+      protocolNumber: "VT-2023-0781",
+      userId: 1,
+      clientId: client2Id,
+      projectId: project2Id,
+      status: "in_review",
+      scheduledDate: new Date("2023-04-21T09:00:00"),
+      startTime: new Date("2023-04-21T09:00:00"),
+      endTime: new Date("2023-04-21T10:30:00"),
+      roofModel: "Telha Plana",
+      quantity: 180,
+      area: 350,
+      installationDate: new Date("2020-06-10"),
+      warranty: "7",
+      conclusion: "Pendente revisão",
+      recommendation: "Aguardando análise técnica"
+    });
+    
+    this.createInspection({
+      protocolNumber: "VT-2023-0780",
+      userId: 1,
+      clientId: client3Id,
+      projectId: project3Id,
+      status: "in_progress",
+      scheduledDate: new Date("2023-04-20T13:00:00"),
+      startTime: new Date("2023-04-20T13:00:00"),
+      roofModel: "Fibrocimento",
+      quantity: 300,
+      area: 600,
+      installationDate: new Date("2019-12-05"),
+      warranty: "5"
+    });
+    
+    // Inspeções agendadas
+    this.createInspection({
+      protocolNumber: "VT-2023-0783",
+      userId: 1,
+      clientId: client1Id,
+      projectId: project1Id,
+      status: "scheduled",
+      scheduledDate: new Date(Date.now() + 3600000), // Hoje em 1 hora
+      roofModel: "Telha Ondulada"
+    });
+    
+    this.createInspection({
+      protocolNumber: "VT-2023-0784",
+      userId: 1,
+      clientId: client2Id,
+      projectId: project2Id,
+      status: "scheduled",
+      scheduledDate: new Date(Date.now() + 86400000), // Amanhã
+      roofModel: "Telha Plana"
+    });
+    
+    this.createInspection({
+      protocolNumber: "VT-2023-0785",
+      userId: 1,
+      clientId: client3Id,
+      projectId: project3Id,
+      status: "scheduled",
+      scheduledDate: new Date(Date.now() + 86400000 * 4), // Em 4 dias
+      roofModel: "Fibrocimento"
+    });
+    
+    return {
+      users: this.users.size,
+      clients: this.clients.size,
+      projects: this.projects.size,
+      inspections: this.inspections.size,
+      evidences: this.evidences.size
+    };
   }
 }
 

@@ -707,6 +707,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para diagnosticar problemas
+  app.get("/api/dev/diagnostics", isAuthenticated, async (req, res, next) => {
+    try {
+      const diagnostics = {
+        clients: await storage.getClients(),
+        projects: await storage.getProjects(),
+        inspections: await storage.getInspections(),
+      };
+      
+      res.json(diagnostics);
+    } catch (error) {
+      console.error("Erro ao realizar diagnóstico:", error);
+      next(error);
+    }
+  });
+  
+  // Rota para garantir relacionamentos diretos (recriação de dados)
+  app.post("/api/dev/reset-data", isAuthenticated, async (req, res, next) => {
+    try {
+      // Reiniciar o armazenamento de dados
+      const resetResult = await storage.resetData();
+      
+      res.json({ 
+        message: "Dados redefinidos com sucesso", 
+        resetResult 
+      });
+    } catch (error) {
+      console.error("Erro ao redefinir dados:", error);
+      next(error);
+    }
+  });
+  
   // Rota para corrigir inspeções (apenas para desenvolvimento)
   app.post("/api/dev/fix-inspections", isAuthenticated, async (req, res, next) => {
     try {
@@ -730,21 +762,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const fixedInspections = [];
       
-      // Atualizar cada inspeção
+      // Verificar quais inspeções existem primeiro
+      const inspections = await storage.getInspections();
+      console.log(`Encontradas ${inspections.length} inspeções no sistema`);
+      
+      for (const inspection of inspections) {
+        console.log(`Inspeção ${inspection.id}: clientId=${inspection.clientId}, projectId=${inspection.projectId}`);
+      }
+      
+      // Atualizar cada inspeção manualmente com força bruta
       for (const [inspectionId, data] of Object.entries(idMap)) {
         try {
           const id = parseInt(inspectionId);
+          console.log(`Tentando atualizar inspeção ${id} com clientId=${data.clientId}, projectId=${data.projectId}`);
+          
           const inspection = await storage.getInspection(id);
           
           if (inspection) {
+            console.log(`Inspeção ${id} encontrada. Status atual: clientId=${inspection.clientId}, projectId=${inspection.projectId}`);
+            
             const updatedInspection = await storage.updateInspection(id, {
               clientId: data.clientId,
               projectId: data.projectId
             });
             
             if (updatedInspection) {
+              console.log(`Inspeção ${id} atualizada com sucesso: clientId=${updatedInspection.clientId}, projectId=${updatedInspection.projectId}`);
               fixedInspections.push(updatedInspection);
+            } else {
+              console.error(`Falha ao atualizar inspeção ${id}: objeto de retorno é nulo`);
             }
+          } else {
+            console.error(`Inspeção ${id} não encontrada`);
           }
         } catch (error) {
           console.error(`Erro ao atualizar inspeção ${inspectionId}:`, error);
