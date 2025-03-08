@@ -508,10 +508,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Inspection not found" });
       }
       
+      console.log("Inspection for report:", inspection);
+      
+      // Verificar se a inspeção tem os campos necessários
+      if (!inspection.clientId || !inspection.projectId) {
+        return res.status(400).json({ 
+          message: "Dados de inspeção incompletos. Faltam clientId e/ou projectId.",
+          inspection: inspection 
+        });
+      }
+      
       // Carregar dados relacionados para o relatório
       const client = await storage.getClient(inspection.clientId);
       const project = await storage.getProject(inspection.projectId);
       const evidences = await storage.getEvidencesByInspectionId(id);
+      
+      console.log("Client data:", client);
+      console.log("Project data:", project);
       
       // Estruturar o relatório
       const report = {
@@ -528,6 +541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(report);
     } catch (error) {
+      console.error("Error generating report:", error);
       next(error);
     }
   });
