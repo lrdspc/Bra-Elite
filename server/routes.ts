@@ -508,8 +508,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Inspection not found" });
       }
       
-      console.log("Inspection for report:", inspection);
-      
       // Verificar se a inspeção tem os campos necessários
       if (!inspection.clientId || !inspection.projectId) {
         return res.status(400).json({ 
@@ -523,20 +521,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.getProject(inspection.projectId);
       const evidences = await storage.getEvidencesByInspectionId(id);
       
-      console.log("Client data:", client);
-      console.log("Project data:", project);
+      // Buscar informações do técnico
+      const technician = await storage.getUser(inspection.userId);
       
-      // Estruturar o relatório
+      // Estruturar o relatório com dados mais completos
       const report = {
-        ...inspection,
-        clientName: client?.name,
-        clientContact: client?.contactPhone,
-        clientEmail: client?.email,
-        projectName: project?.name,
-        address: project?.address,
-        city: project?.city,
-        state: project?.state,
-        evidences: evidences
+        // Informações da inspeção
+        id: inspection.id,
+        protocolNumber: inspection.protocolNumber,
+        status: inspection.status,
+        scheduledDate: inspection.scheduledDate,
+        startTime: inspection.startTime,
+        endTime: inspection.endTime,
+        createdAt: inspection.createdAt,
+        updatedAt: inspection.updatedAt,
+        
+        // Informações do cliente
+        client: {
+          id: client?.id,
+          name: client?.name,
+          contactName: client?.contactName,
+          contactPhone: client?.contactPhone,
+          email: client?.email,
+          document: client?.document,
+          type: client?.type
+        },
+        
+        // Informações do projeto/local
+        project: {
+          id: project?.id,
+          name: project?.name,
+          address: project?.address,
+          number: project?.number,
+          complement: project?.complement,
+          neighborhood: project?.neighborhood,
+          city: project?.city,
+          state: project?.state,
+          zipCode: project?.zipCode,
+          latitude: project?.latitude,
+          longitude: project?.longitude
+        },
+        
+        // Informações do telhado/produto
+        product: {
+          roofModel: inspection.roofModel,
+          quantity: inspection.quantity,
+          area: inspection.area,
+          installationDate: inspection.installationDate,
+          warranty: inspection.warranty
+        },
+        
+        // Informações do técnico
+        technician: {
+          id: technician?.id,
+          name: technician?.name,
+          email: technician?.email
+        },
+        
+        // Conclusão e recomendação
+        conclusion: inspection.conclusion,
+        recommendation: inspection.recommendation,
+        
+        // Evidências
+        evidences: evidences.map(evidence => ({
+          id: evidence.id,
+          fileUrl: evidence.fileUrl,
+          type: evidence.type,
+          category: evidence.category,
+          notes: evidence.notes,
+          createdAt: evidence.createdAt
+        }))
       };
       
       res.json(report);
@@ -572,6 +626,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(reportData);
     } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Rota para download do relatório em PDF
+  app.get("/api/reports/:id/download", isAuthenticated, async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      const inspection = await storage.getInspection(id);
+      
+      if (!inspection) {
+        return res.status(404).json({ message: "Inspeção não encontrada" });
+      }
+      
+      // Verificar se a inspeção tem os dados necessários
+      if (!inspection.clientId || !inspection.projectId) {
+        return res.status(400).json({ 
+          message: "Dados de inspeção incompletos para geração de PDF" 
+        });
+      }
+      
+      // Verificar se a inspeção está concluída
+      if (inspection.status !== 'completed') {
+        return res.status(400).json({ 
+          message: "Relatório em PDF só pode ser gerado para inspeções concluídas" 
+        });
+      }
+      
+      // Simular a geração de um arquivo PDF
+      const client = await storage.getClient(inspection.clientId);
+      
+      // Criar resposta simulando um arquivo PDF
+      const reportContent = Buffer.from(`
+      ======================================
+      RELATÓRIO DE VISTORIA TÉCNICA BRASILIT
+      ======================================
+      
+      Protocolo: ${inspection.protocolNumber}
+      Data: ${inspection.scheduledDate ? new Date(inspection.scheduledDate).toLocaleDateString('pt-BR') : 'Não agendada'}
+      
+      INFORMAÇÕES DO CLIENTE
+      ---------------------
+      Nome: ${client?.name || '-'}
+      Contato: ${client?.contactName || '-'}
+      Telefone: ${client?.contactPhone || '-'}
+      
+      DETALHES DA INSPEÇÃO
+      -------------------
+      Produto: ${inspection.roofModel || '-'}
+      Quantidade: ${inspection.quantity || '-'} unidades
+      Área: ${inspection.area || '-'} m²
+      Data de instalação: ${inspection.installationDate ? new Date(inspection.installationDate).toLocaleDateString('pt-BR') : '-'}
+      
+      CONCLUSÃO
+      ---------
+      ${inspection.conclusion || 'Sem conclusão registrada'}
+      
+      RECOMENDAÇÕES
+      -------------
+      ${inspection.recommendation || 'Sem recomendações registradas'}
+      
+      Assinatura: ______________________
+      
+      Documento gerado em ${new Date().toLocaleString('pt-BR')}
+      Para validar este documento, acesse www.brasilit.com.br/validar e informe o código ${inspection.protocolNumber}
+      `);
+      
+      // Configurar headers para download do arquivo
+      res.setHeader('Content-Disposition', `attachment; filename="relatorio-${inspection.protocolNumber}.pdf"`);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Length', reportContent.length);
+      
+      // Enviar o conteúdo
+      res.end(reportContent);
+      
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
       next(error);
     }
   });
