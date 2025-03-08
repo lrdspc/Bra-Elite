@@ -1,77 +1,67 @@
 # Brasilit PWA - Sistema de Vistorias Técnicas
 
-![Brasilit](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Brasilit_logo.svg/320px-Brasilit_logo.svg.png)
+Um aplicativo web progressivo (PWA) desenvolvido para a Brasilit, permitindo que técnicos realizem vistorias de campo com recursos offline robustos e funcionalidades avançadas.
 
-## Sobre o Projeto
+## Principais Funcionalidades
 
-Um Progressive Web App (PWA) para gerenciamento de vistorias técnicas da Brasilit, otimizado para uso em campo por técnicos e engenheiros.
+- ✅ **Operação Offline**: Funcionamento completo em áreas sem conexão com sincronização automática ao retornar online
+- 📱 **Design Mobile-First**: Interface otimizada para dispositivos móveis, com suporte completo a tablets e desktops
+- 📋 **Workflow de Inspeção**: Processo guiado em etapas para coleta de dados estruturada
+- 📷 **Captura de Evidências**: Fotos com marcações e anotações durante as vistorias
+- 📍 **Geolocalização**: Registro automático de coordenadas e preenchimento de endereços
+- 📊 **Relatórios Detalhados**: Geração automática de relatórios com todas as evidências coletadas
+- 🔄 **Sincronização**: Sistema robusto de sincronização com o servidor principal
 
-### Funcionalidades Principais
+## Tecnologias
 
-- **Dashboard**: Visualização de estatísticas e informações relevantes
-- **Vistorias**: Criação, edição e acompanhamento de vistorias técnicas
-- **Modo Offline**: Trabalhe sem conexão com a internet com sincronização automática
-- **Geolocalização**: Captura de coordenadas e preenchimento automático de endereços
-- **Evidências Fotográficas**: Captura e anotação de imagens diretamente na aplicação
-- **Relatórios**: Geração de relatórios em PDF para compartilhamento
+- **Frontend**: React.js com TypeScript
+- **UI**: Tailwind CSS com componentes shadcn/ui
+- **Armazenamento Local**: IndexedDB para persistência offline
+- **PWA**: Suporte total a recursos PWA (Service Workers, Cache API, etc)
+- **Backend**: Node.js com Express
+- **Dados**: Suporte a PostgreSQL e armazenamento em memória para desenvolvimento
 
-### Stack Tecnológica
+## Pré-requisitos
 
-- **Frontend**: React.js, TypeScript, TailwindCSS, Shadcn UI
-- **Backend**: Node.js, Express
-- **Armazenamento**: IndexedDB (offline), banco de dados relacional (online)
-- **PWA**: Service Workers, Manifest, IndexedDB, Cache API
+- Node.js 20.x
+- npm 10.x ou superior
 
 ## Instalação
 
 ```bash
-# Instalação das dependências
+# Clone o repositório
+git clone https://github.com/brasilit/pwa-vistorias.git
+cd pwa-vistorias
+
+# Instale as dependências
 npm install
 
-# Desenvolvimento
+# Inicie o servidor de desenvolvimento
 npm run dev
+```
 
-# Build
+## Uso em Produção
+
+Para compilar o aplicativo para produção:
+
+```bash
 npm run build
-
-# Produção
-npm start
 ```
 
-## Estrutura de Diretórios
+Os arquivos otimizados serão gerados no diretório `dist`.
 
-```
-brasilit-pwa/
-├── client/              # Código frontend em React
-│   ├── public/          # Arquivos estáticos
-│   └── src/             # Código fonte React
-│       ├── components/  # Componentes da UI
-│       ├── context/     # Contextos React
-│       ├── hooks/       # Hooks customizados
-│       ├── lib/         # Bibliotecas e utilitários
-│       └── pages/       # Páginas da aplicação
-├── server/              # Backend Node.js/Express
-├── shared/              # Código compartilhado (tipos, esquemas, etc.)
-└── docs/                # Documentação adicional
-```
+## Contribuição
 
-## Recursos
-
-- **Modo Offline**: Funciona mesmo sem conexão com internet
-- **Responsivo**: Adaptado para desktop, tablet e smartphones
-- **Geolocalização**: Captura de coordenadas GPS de alta precisão
-- **Sincronização automática**: Dados são sincronizados quando há conexão
-- **Notificações**: Alertas para novos trabalhos e atualizações
-- **Edição de Imagens**: Anotações e marcações em imagens capturadas
-- **Assinatura Digital**: Coleta de assinaturas de clientes
-
-## Uso do PWA
-
-1. Acesse a aplicação pelo navegador
-2. Clique em "Adicionar à Tela Inicial" para instalar o PWA
-3. Faça login com suas credenciais
-4. A aplicação agora funciona como um aplicativo nativo
+1. Faça o fork do projeto
+2. Crie sua branch de funcionalidade (`git checkout -b feature/nova-funcionalidade`)
+3. Faça commit de suas alterações (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Envie para o branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
 
 ## Licença
 
-© Brasilit - Todos os direitos reservados
+Todos os direitos reservados à Brasilit © 2025. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## Contato
+
+Para questões relacionadas ao projeto, entre em contato com a equipe de desenvolvimento da Brasilit.

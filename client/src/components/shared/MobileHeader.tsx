@@ -58,6 +58,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
   useEffect(() => {
     // Registrar a posição anterior para comparar a direção da rolagem
     let lastScrollY = window.scrollY;
+    let scrollingDown = false;
+    let scrollTimer: number | null = null;
     
     // Função para verificar se deve mostrar o cabeçalho
     function checkHeader() {
@@ -66,14 +68,22 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
       // Mostrar botão de scroll para o topo quando estiver longe do topo
       setShowScrollTop(currentScrollY > 300);
       
-      // Lógica extremamente simplificada:
-      // 1. Se estiver no topo (até 5px), mostrar cabeçalho
-      // 2. Em qualquer outro caso, esconder o cabeçalho
+      // Determinar a direção da rolagem
+      scrollingDown = currentScrollY > lastScrollY;
+      
+      // Lógica melhorada:
+      // 1. Se estiver no topo da página (até 5px), sempre mostrar o cabeçalho
+      // 2. Se estiver rolando para baixo E não estiver no topo, esconder o cabeçalho
+      // 3. Se estiver rolando para cima, mostrar o cabeçalho
       
       if (currentScrollY <= 5) {
         setIsHeaderVisible(true);
-      } else {
+      } else if (scrollingDown && currentScrollY > 100) {
+        // Esconder o cabeçalho apenas quando rolar para baixo significativamente
         setIsHeaderVisible(false);
+      } else if (!scrollingDown) {
+        // Mostrar o cabeçalho quando rolar para cima
+        setIsHeaderVisible(true);
       }
       
       // Atualizar a última posição
@@ -83,15 +93,25 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
     // Verificar a posição inicial
     checkHeader();
     
-    // Função para lidar com eventos de rolagem
+    // Função com debounce para melhorar a performance
     const handleScroll = () => {
-      checkHeader();
+      if (scrollTimer !== null) {
+        clearTimeout(scrollTimer);
+      }
+      
+      scrollTimer = window.setTimeout(() => {
+        checkHeader();
+        scrollTimer = null;
+      }, 10);
     };
     
     // Adicionar event listener com passive: true para melhor performance
     window.addEventListener('scroll', handleScroll, { passive: true });
     
     return () => {
+      if (scrollTimer !== null) {
+        clearTimeout(scrollTimer);
+      }
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
@@ -123,8 +143,8 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onMenuClick }) => {
     <>
       <header 
         ref={headerRef}
-        className={`bg-white shadow-sm fixed left-0 right-0 z-30 md:hidden ${
-          isHeaderVisible ? 'block' : 'hidden'
+        className={`bg-white shadow-sm fixed left-0 right-0 z-30 md:hidden transition-transform duration-200 ease-in-out ${
+          isHeaderVisible ? 'transform-none' : 'transform -translate-y-full'
         }`}
       >
         {!showSearch ? (
