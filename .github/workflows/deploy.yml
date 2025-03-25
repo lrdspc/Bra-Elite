@@ -49,7 +49,7 @@ jobs:
         run: tar -czf dist.tar.gz dist
       
       - name: Fazer upload do artefato de build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pwa-build
           path: dist.tar.gz
