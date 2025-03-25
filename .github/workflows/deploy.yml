@@ -56,7 +56,7 @@ jobs:
           retention-days: 7
       
       - name: Configurar credenciais para deploy
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         if: github.ref == 'refs/heads/main'
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
