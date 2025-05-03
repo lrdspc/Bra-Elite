@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, Link } from 'wouter';
 import { formatDate, getStatusColor, getStatusLabel } from '@/lib/utils';
-import { Search, Filter, Plus, Clock, CheckCircle, AlertCircle, Clock3 } from 'lucide-react';
+import { Search, Filter, Plus, Clock, CheckCircle, AlertCircle, Clock3, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,13 +39,13 @@ const InspectionsPage: React.FC = () => {
       (inspection.projectName && inspection.projectName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (inspection.clientName && inspection.clientName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (inspection.protocolNumber && inspection.protocolNumber.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     if (activeTab === 'all') return matchesSearch;
     if (activeTab === 'in_progress') return matchesSearch && inspection.status === 'in_progress';
     if (activeTab === 'completed') return matchesSearch && inspection.status === 'completed';
     if (activeTab === 'pending') return matchesSearch && (inspection.status === 'draft' || inspection.status === 'scheduled');
     if (activeTab === 'in_review') return matchesSearch && inspection.status === 'in_review';
-    
+
     return matchesSearch && inspection.status === activeTab;
   }) : [];
 
@@ -62,6 +62,30 @@ const InspectionsPage: React.FC = () => {
       default:
         return <Clock className="h-5 w-5 text-muted-foreground" />;
     }
+  };
+
+  // Function to calculate days since protocol date and determine urgency
+  const getUrgencyInfo = (protocolDate: string) => {
+    if (!protocolDate) return { daysElapsed: 0, urgencyClass: 'bg-green-100 text-green-800' };
+
+    const protocolDateTime = new Date(protocolDate).getTime();
+    const currentTime = new Date().getTime();
+    const daysDiff = Math.floor((currentTime - protocolDateTime) / (1000 * 60 * 60 * 24));
+
+    // Determine urgency class based on days elapsed
+    // Green: <10 days, Yellow: 10-15 days, Orange: 15-25 days, Red: >25 days
+    let urgencyClass = '';
+    if (daysDiff < 10) {
+      urgencyClass = 'bg-green-100 text-green-800';
+    } else if (daysDiff < 15) {
+      urgencyClass = 'bg-yellow-100 text-yellow-800';
+    } else if (daysDiff < 25) {
+      urgencyClass = 'bg-orange-100 text-orange-800';
+    } else {
+      urgencyClass = 'bg-red-100 text-red-800';
+    }
+
+    return { daysElapsed: daysDiff, urgencyClass };
   };
 
   return (
@@ -139,7 +163,7 @@ const InspectionsPage: React.FC = () => {
               {filteredInspections.length} vistoria(s) encontrada(s)
             </div>
           </div>
-          
+
           <TabsContent value={activeTab} className="mt-0">
             {isLoading ? (
               // Loading state
@@ -166,7 +190,14 @@ const InspectionsPage: React.FC = () => {
               </div>
             ) : filteredInspections.length > 0 ? (
               <div className="space-y-4">
-                {filteredInspections.map((inspection: any) => (
+                {/* Sort inspections by protocol date (oldest first for prioritization) */}
+                {[...filteredInspections]
+                  .sort((a, b) => {
+                    const dateA = a.protocolDate ? new Date(a.protocolDate).getTime() : 0;
+                    const dateB = b.protocolDate ? new Date(b.protocolDate).getTime() : 0;
+                    return dateA - dateB; // Oldest first
+                  })
+                  .map((inspection: any) => (
                   <Link key={inspection.id} href={`/inspection/${inspection.id}`}>
                     <Card className="cursor-pointer hover:shadow-md transition-shadow">
                       <CardContent className="p-4 md:p-6">
@@ -190,6 +221,19 @@ const InspectionsPage: React.FC = () => {
                               <p className="text-sm text-muted-foreground mt-1">
                                 Protocolo: {inspection.protocolNumber || 'N/A'}
                               </p>
+                              {inspection.protocolDate && (
+                                <div className="mt-1">
+                                  {(() => {
+                                    const urgencyInfo = getUrgencyInfo(inspection.protocolDate);
+                                    return (
+                                      <span className={`px-2 py-1 text-xs rounded-full ${urgencyInfo.urgencyClass} font-medium inline-flex items-center`}>
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        {urgencyInfo.daysElapsed} dias do protocolo
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">
