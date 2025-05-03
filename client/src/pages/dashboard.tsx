@@ -4,6 +4,7 @@ import KpiCard from '@/components/dashboard/KpiCard';
 import NextVisits from '@/components/dashboard/NextVisits';
 import QuickAccess from '@/components/dashboard/QuickAccess';
 import RecentActivity from '@/components/dashboard/RecentActivity';
+import MapView from '@/components/dashboard/MapView';
 import { Bell, RefreshCw } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
@@ -14,49 +15,49 @@ const DashboardPage: React.FC = () => {
       try {
         // Fallback to local stats calculation if API endpoint is not available
         const inspections = await fetch('/api/inspections').then(res => res.json());
-        
+
         // Calculate basic stats
         const thisMonth = new Date().getMonth();
         const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
-        
+
         const inspectionsThisMonth = inspections.filter((i: any) => {
           const date = new Date(i.createdAt);
           return date.getMonth() === thisMonth;
         });
-        
+
         const inspectionsLastMonth = inspections.filter((i: any) => {
           const date = new Date(i.createdAt);
           return date.getMonth() === lastMonth;
         });
-        
+
         const pendingInspections = inspections.filter((i: any) => 
           i.status === 'in_progress' || i.status === 'draft'
         );
-        
+
         const criticalPending = pendingInspections.length > 3 ? 3 : pendingInspections.length;
-        
+
         const completedInspections = inspections.filter((i: any) => i.status === 'completed');
-        
+
         // Calculate average time (assuming endTime and startTime are present)
         let avgTimeInHours = 0;
         const inspectionsWithTime = completedInspections.filter((i: any) => i.endTime && i.startTime);
-        
+
         if (inspectionsWithTime.length > 0) {
           const totalTimeMs = inspectionsWithTime.reduce((sum: number, i: any) => {
             const endTime = new Date(i.endTime).getTime();
             const startTime = new Date(i.startTime).getTime();
             return sum + (endTime - startTime);
           }, 0);
-          
+
           avgTimeInHours = (totalTimeMs / inspectionsWithTime.length) / (1000 * 60 * 60);
         }
-        
+
         // Calculate approval rate
         const procedenteCount = completedInspections.filter((i: any) => i.conclusion === 'approved').length;
         const approvalRate = completedInspections.length > 0 
           ? (procedenteCount / completedInspections.length) * 100 
           : 0;
-        
+
         return {
           totalInspections: inspectionsThisMonth.length,
           changeFromLastMonth: inspectionsLastMonth.length > 0 
@@ -125,7 +126,7 @@ const DashboardPage: React.FC = () => {
             <span>Atualizar</span>
           </button>
         </div>
-        
+
         {/* KPI Row - Otimizado para mobile (2 colunas) e desktop (4 colunas) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 md:mb-6">
           <KpiCard 
@@ -136,7 +137,7 @@ const DashboardPage: React.FC = () => {
               positive: (dashboardData?.changeFromLastMonth || 0) > 0
             }}
           />
-          
+
           <KpiCard 
             title="Pendentes" 
             value={isLoading ? "..." : dashboardData?.pendingCount || 0}
@@ -145,7 +146,7 @@ const DashboardPage: React.FC = () => {
               positive: false
             }}
           />
-          
+
           <KpiCard 
             title="Tempo Médio" 
             value={isLoading ? "..." : `${dashboardData?.avgTimeInHours.toFixed(1)}h`}
@@ -154,7 +155,7 @@ const DashboardPage: React.FC = () => {
               positive: true
             }}
           />
-          
+
           <KpiCard 
             title="Taxa de Procedência" 
             value={isLoading ? "..." : `${dashboardData?.approvalRate}%`}
@@ -169,7 +170,7 @@ const DashboardPage: React.FC = () => {
         <div className="block md:hidden mb-4">
           <QuickAccess />
         </div>
-        
+
         {/* Next Visits e Quick Access (Desktop) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
           <div className="md:col-span-2">
@@ -178,6 +179,11 @@ const DashboardPage: React.FC = () => {
           <div className="hidden md:block">
             <QuickAccess />
           </div>
+        </div>
+
+        {/* Map View */}
+        <div className="mb-4 md:mb-6">
+          <MapView />
         </div>
 
         {/* Recent Activity */}

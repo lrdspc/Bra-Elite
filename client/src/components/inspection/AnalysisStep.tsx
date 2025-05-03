@@ -31,90 +31,90 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
   onPrevious, 
   onNext 
 }) => {
-  // Standard list of non-conformities to check
+  // Standard list of non-conformities to check - based on Brasilit requirements
   const initialNonConformities: NonConformity[] = [
     { 
       id: 'nc1', 
-      name: 'Infiltração', 
-      description: 'Sinais de infiltração de água na estrutura ou no telhado', 
+      name: 'Armazenagem Incorreta', 
+      description: 'Telhas estocadas em local inadequado, sem proteção contra intempéries, empilhamento incorreto ou altura excessiva.', 
       severity: 'high' 
     },
     { 
       id: 'nc2', 
-      name: 'Fissuras', 
-      description: 'Presença de fissuras ou rachaduras nas telhas', 
-      severity: 'medium' 
+      name: 'Carga Permanente sobre as Telhas', 
+      description: 'Equipamentos, estruturas ou instalações apoiadas diretamente sobre as telhas, causando sobrecarga não prevista.', 
+      severity: 'high' 
     },
     { 
       id: 'nc3', 
-      name: 'Oxidação', 
-      description: 'Sinais de oxidação em componentes metálicos', 
+      name: 'Corte de Canto Incorreto ou Ausente', 
+      description: 'Ausência da remoção do quadrado de 11x11cm nos cantos onde há sobreposição de telhas.', 
       severity: 'medium' 
     },
     { 
       id: 'nc4', 
-      name: 'Deslocamento', 
-      description: 'Telhas deslocadas da posição original', 
+      name: 'Estrutura Desalinhada', 
+      description: 'Terças ou caibros sem alinhamento adequado, comprometendo o assentamento e caimento correto das telhas.', 
       severity: 'high' 
     },
     { 
       id: 'nc5', 
-      name: 'Fungos/Mofo', 
-      description: 'Presença de fungos, mofo ou manchas escuras', 
-      severity: 'medium' 
+      name: 'Fixação Irregular das Telhas', 
+      description: 'Uso de fixadores incompatíveis, quantidade insuficiente ou posicionamento incorreto dos parafusos/ganchos.', 
+      severity: 'high' 
     },
     { 
       id: 'nc6', 
-      name: 'Estrutura comprometida', 
-      description: 'Problemas na estrutura de suporte do telhado', 
+      name: 'Inclinação da Telha Inferior ao Recomendado', 
+      description: 'Caimento abaixo do mínimo especificado pelo fabricante (15° para onduladas, 10° para estruturais).', 
       severity: 'high' 
     },
     { 
       id: 'nc7', 
-      name: 'Desgaste', 
-      description: 'Desgaste natural do material além do esperado', 
-      severity: 'low' 
+      name: 'Marcas de Caminhamento sobre o Telhado', 
+      description: 'Evidências de tráfego direto sobre as telhas sem uso de tábuas de distribuição de cargas.', 
+      severity: 'medium' 
     },
     { 
       id: 'nc8', 
-      name: 'Instalação incorreta', 
-      description: 'Problemas decorrentes de instalação inadequada', 
+      name: 'Balanço Livre do Beiral Incorreto', 
+      description: 'Distância entre última terça e extremidade da telha fora das especificações (varia conforme o comprimento da telha).', 
       severity: 'medium' 
     },
     { 
       id: 'nc9', 
-      name: 'Danos por impacto', 
-      description: 'Danos causados por impacto de objetos ou granizo', 
-      severity: 'medium' 
-    },
-    { 
-      id: 'nc10', 
-      name: 'Acúmulo de detritos', 
-      description: 'Acúmulo excessivo de folhas ou outros detritos', 
-      severity: 'low' 
-    },
-    { 
-      id: 'nc11', 
-      name: 'Vazamentos', 
-      description: 'Vazamentos localizados em junções ou pontos específicos', 
+      name: 'Número de Apoios e Vão Livre Inadequados', 
+      description: 'Quantidade insuficiente de apoios ou espaçamento excessivo entre terças (acima do vão máximo permitido).', 
       severity: 'high' 
     },
     { 
+      id: 'nc10', 
+      name: 'Recobrimento Incorreto', 
+      description: 'Sobreposição longitudinal ou lateral insuficiente entre telhas adjacentes, comprometendo a estanqueidade.', 
+      severity: 'high' 
+    },
+    { 
+      id: 'nc11', 
+      name: 'Sentido de Montagem Incorreto', 
+      description: 'Instalação das telhas no sentido contrário ao recomendado em relação aos ventos predominantes.', 
+      severity: 'medium' 
+    },
+    { 
       id: 'nc12', 
-      name: 'Calhas obstruídas', 
-      description: 'Obstrução de calhas e sistemas de drenagem', 
+      name: 'Uso de Cumeeira Cerâmica', 
+      description: 'Utilização de peças cerâmicas incompatíveis com as telhas de fibrocimento.', 
       severity: 'medium' 
     },
     { 
       id: 'nc13', 
-      name: 'Ventilação inadequada', 
-      description: 'Problemas de ventilação no telhado ou sótão', 
-      severity: 'low' 
+      name: 'Uso de Argamassa em Substituição a Peças Complementares', 
+      description: 'Aplicação de argamassa em vez do uso de peças específicas Brasilit para vedação e acabamento.', 
+      severity: 'medium' 
     },
     { 
       id: 'nc14', 
-      name: 'Outros problemas', 
-      description: 'Outros problemas identificados durante a vistoria', 
+      name: 'Fixação de Acessórios Complementares Realizada de Forma Inadequada', 
+      description: 'Instalação incorreta de rufos, calhas, pingadeiras ou outros acessórios.', 
       severity: 'medium' 
     },
   ];
@@ -138,7 +138,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
     setNonConformities(prev => prev.map(nc => 
       nc.id === id ? { ...nc, selected: !nc.selected } : nc
     ));
-    
+
     // Update form data
     const updatedNonConformities = nonConformities.map(nc => 
       nc.id === id ? { ...nc, selected: !nc.selected } : nc
@@ -153,19 +153,19 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
 
   const saveNonConformityDetail = () => {
     if (!selectedNonConformity) return;
-    
+
     // Update the specific non-conformity
     const updatedNonConformities = nonConformities.map(nc => 
       nc.id === selectedNonConformity.id 
         ? { ...nc, notes, selected: true, images: [...(nc.images || []), ...(tempImage ? [tempImage] : [])] } 
         : nc
     );
-    
+
     setNonConformities(updatedNonConformities);
     setSelectedNonConformity(null);
     setNotes('');
     setTempImage(null);
-    
+
     // Update form data
     updateFormData({ technicalAnalysis: updatedNonConformities.filter(nc => nc.selected) });
   };
@@ -209,7 +209,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
       <Card className="mb-6">
         <CardContent className="p-4 md:p-6">
           <h2 className="text-lg font-medium mb-4">Análise Técnica</h2>
-          
+
           {selectedNonConformity ? (
             <div className="space-y-4">
               <div className="flex justify-between items-start">
@@ -222,7 +222,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
                   Voltar
                 </Button>
               </div>
-              
+
               <div>
                 <Label htmlFor="notes" className="block text-sm font-medium text-muted-foreground mb-1">
                   Observações
@@ -235,7 +235,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
                   className="min-h-[120px]"
                 />
               </div>
-              
+
               <div>
                 <Label className="block text-sm font-medium text-muted-foreground mb-1">
                   Evidências Fotográficas
@@ -261,7 +261,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
                   Capturar Foto
                 </Button>
               </div>
-              
+
               <div className="flex justify-end">
                 <Button onClick={saveNonConformityDetail}>
                   Salvar Detalhes
@@ -273,7 +273,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
               <p className="text-sm text-muted-foreground">
                 Selecione as não-conformidades identificadas durante a vistoria:
               </p>
-              
+
               <div className="space-y-2">
                 {nonConformities.map((nc) => (
                   <div 
@@ -301,7 +301,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
                         {getSeverityBadge(nc.severity)}
                       </Label>
                       <p className="text-sm text-muted-foreground mt-1">{nc.description}</p>
-                      
+
                       {nc.selected && (
                         <div className="mt-2">
                           {nc.notes ? (
@@ -309,7 +309,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
                               "{nc.notes}"
                             </p>
                           ) : null}
-                          
+
                           {(nc.images && nc.images.length > 0) ? (
                             <div className="flex mt-2 space-x-2">
                               {nc.images.slice(0, 3).map((img, i) => (
@@ -324,7 +324,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
                               )}
                             </div>
                           ) : null}
-                          
+
                           <Button
                             variant="link"
                             size="sm"
@@ -339,7 +339,7 @@ const AnalysisStep: React.FC<AnalysisStepProps> = ({
                   </div>
                 ))}
               </div>
-              
+
               <div className="flex justify-between">
                 <Button variant="outline" onClick={onPrevious}>
                   Voltar

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatDate } from '@/lib/utils';
-import { Calendar, FileDown, Download, FileText, Search, Filter, Eye } from 'lucide-react';
+import { Calendar, FileDown, Download, FileText, Search, Filter, Eye, FileOutput } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReportGenerator from '@/components/reports/ReportGenerator';
 
 const ReportsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,7 +53,7 @@ const ReportsPage: React.FC = () => {
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       const lastThreeMonths = new Date();
       lastThreeMonths.setMonth(lastThreeMonths.getMonth() - 3);
-      
+
       if (filterPeriod === 'month' && reportDate < lastMonth) {
         return false;
       } else if (filterPeriod === 'quarter' && reportDate < lastThreeMonths) {
@@ -68,42 +69,13 @@ const ReportsPage: React.FC = () => {
         return false;
       }
     }
-    
+
     return matchesSearch;
   });
 
+  // Função para visualizar um relatório
   const handleViewReport = (report: any) => {
     setSelectedReport(report);
-  };
-
-  const handleDownloadReport = async (report: any) => {
-    try {
-      // Solicitar a geração do relatório
-      const response = await fetch(`/api/inspections/${report.id}/generate-report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao gerar relatório');
-      }
-      
-      const data = await response.json();
-      console.log('Relatório gerado:', data);
-      
-      // Normalmente aqui faria o download do arquivo
-      // Em um app real, usaríamos algo como:
-      // window.open(data.downloadUrl, '_blank');
-      
-      // Por enquanto, apenas mostramos um alerta
-      alert(`Relatório ${report.protocolNumber} gerado com sucesso!`);
-    } catch (error) {
-      console.error('Erro ao gerar relatório:', error);
-      alert(`Erro ao gerar relatório: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-    }
   };
 
   return (
@@ -130,7 +102,7 @@ const ReportsPage: React.FC = () => {
           <Filter className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">Filtros:</span>
         </div>
-        
+
         <div className="flex flex-wrap gap-3">
           <Select value={filterPeriod} onValueChange={setFilterPeriod}>
             <SelectTrigger className="w-[180px]">
@@ -143,7 +115,7 @@ const ReportsPage: React.FC = () => {
               <SelectItem value="year">Último ano</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Tipo" />
@@ -165,7 +137,7 @@ const ReportsPage: React.FC = () => {
             {filteredReports.length} relatório(s) encontrado(s)
           </div>
         </div>
-        
+
         {isLoading ? (
           // Loading state
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -198,16 +170,16 @@ const ReportsPage: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center text-sm text-muted-foreground mb-3">
                     <Calendar className="h-4 w-4 mr-1" />
                     <span>Gerado em: {formatDate(report.updatedAt || report.createdAt)}</span>
                   </div>
-                  
+
                   <p className="text-sm mb-4">
                     <span className="font-medium">Protocolo:</span> {report.protocolNumber}
                   </p>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className={`text-sm px-2 py-1 rounded-full ${
                       report.conclusion === 'approved' 
@@ -216,7 +188,7 @@ const ReportsPage: React.FC = () => {
                     }`}>
                       {report.conclusion === 'approved' ? 'Procedente' : 'Improcedente'}
                     </span>
-                    
+
                     <div className="flex gap-2">
                       <Button 
                         variant="outline" 
@@ -228,9 +200,12 @@ const ReportsPage: React.FC = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => handleDownloadReport(report)}
+                        onClick={() => {
+                          handleViewReport(report);
+                          setTimeout(() => document.querySelector('[data-value="generator"]')?.click(), 100);
+                        }}
                       >
-                        <Download className="h-4 w-4" />
+                        <FileOutput className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -261,14 +236,15 @@ const ReportsPage: React.FC = () => {
             <DialogHeader>
               <DialogTitle>Relatório: {selectedReport.protocolNumber}</DialogTitle>
             </DialogHeader>
-            
+
             <Tabs defaultValue="summary" className="mt-4">
               <TabsList className="mb-4">
                 <TabsTrigger value="summary">Resumo</TabsTrigger>
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
                 <TabsTrigger value="evidences">Evidências</TabsTrigger>
+                <TabsTrigger value="generator">Gerar Relatório</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="summary">
                 <div className="space-y-4">
                   <Card>
@@ -280,7 +256,7 @@ const ReportsPage: React.FC = () => {
                         <h3 className="font-medium">Cliente</h3>
                         <p>{selectedReport.clientName || `Cliente #${selectedReport.clientId}`}</p>
                       </div>
-                      
+
                       <div>
                         <h3 className="font-medium">Empreendimento</h3>
                         <p>{selectedReport.projectName || `Projeto #${selectedReport.projectId}`}</p>
@@ -291,12 +267,12 @@ const ReportsPage: React.FC = () => {
                           {selectedReport.state && `, ${selectedReport.state}`}
                         </p>
                       </div>
-                      
+
                       <div>
                         <h3 className="font-medium">Data da Vistoria</h3>
                         <p>{formatDate(selectedReport.scheduledDate || selectedReport.createdAt)}</p>
                       </div>
-                      
+
                       <div>
                         <h3 className="font-medium">Status</h3>
                         <div className={`inline-block px-2 py-1 rounded-full text-sm ${
@@ -307,14 +283,14 @@ const ReportsPage: React.FC = () => {
                           {selectedReport.conclusion === 'approved' ? 'Procedente' : 'Improcedente'}
                         </div>
                       </div>
-                      
+
                       <div>
                         <h3 className="font-medium">Justificativa</h3>
                         <p className="text-sm">{selectedReport.recommendation || 'Nenhuma justificativa informada'}</p>
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <div className="flex justify-end">
                     <Button 
                       variant="outline" 
@@ -324,15 +300,15 @@ const ReportsPage: React.FC = () => {
                       Fechar
                     </Button>
                     <Button 
-                      onClick={() => handleDownloadReport(selectedReport)}
+                      onClick={() => document.querySelector('[data-value="generator"]')?.click()}
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      Baixar Relatório
+                      <FileOutput className="h-4 w-4 mr-2" />
+                      Gerar Relatório
                     </Button>
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="details">
                 <Card>
                   <CardHeader>
@@ -346,7 +322,7 @@ const ReportsPage: React.FC = () => {
                       <p>Área: {selectedReport.area || 'Não especificado'} m²</p>
                       <p>Data de Instalação: {selectedReport.installationDate ? formatDate(selectedReport.installationDate) : 'Não especificado'}</p>
                     </div>
-                    
+
                     <div>
                       <h3 className="font-medium">Análise Técnica</h3>
                       {selectedReport.technicalAnalysis && selectedReport.technicalAnalysis.length > 0 ? (
@@ -367,7 +343,7 @@ const ReportsPage: React.FC = () => {
                         <p className="text-sm text-muted-foreground">Nenhum item de análise registrado</p>
                       )}
                     </div>
-                    
+
                     <div>
                       <h3 className="font-medium">Recomendações</h3>
                       {selectedReport.recommendations ? (
@@ -383,7 +359,7 @@ const ReportsPage: React.FC = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="evidences">
                 <Card>
                   <CardHeader>
@@ -419,6 +395,15 @@ const ReportsPage: React.FC = () => {
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="generator">
+                <div className="space-y-4">
+                  <ReportGenerator inspectionData={selectedReport} />
+                  <p className="text-xs text-muted-foreground text-center mt-4">
+                    Utilize o gerador de relatórios para criar documentos personalizados no formato DOCX.
+                  </p>
+                </div>
               </TabsContent>
             </Tabs>
           </DialogContent>

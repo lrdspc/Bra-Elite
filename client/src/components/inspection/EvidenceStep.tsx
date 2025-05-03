@@ -64,7 +64,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   const [currentCategory, setCurrentCategory] = useState('geral');
   const [currentNotes, setCurrentNotes] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Annotation feature states
   const [isAnnotating, setIsAnnotating] = useState(false);
   const [annotationTool, setAnnotationTool] = useState<'arrow' | 'circle' | 'rectangle' | 'text'>('arrow');
@@ -74,7 +74,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   const [annotationText, setAnnotationText] = useState('');
   const [isAddingText, setIsAddingText] = useState(false);
   const [textPosition, setTextPosition] = useState({ x: 0, y: 0 });
-  
+
   // Estados para o modo interativo (arrastar e soltar)
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
@@ -82,7 +82,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
   const [activeAnnotationIndex, setActiveAnnotationIndex] = useState<number | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [tempAnnotation, setTempAnnotation] = useState<Annotation | null>(null);
-  
+
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useMobile();
 
@@ -99,46 +99,214 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
     ? evidences 
     : evidences.filter(ev => ev.category === activeTab);
 
-  const captureImage = () => {
-    // In a real app, this would access the device camera
-    // For our demo, we'll simulate it with a placeholder
-    const newImage: EvidenceImage = {
-      id: `evidence-${Date.now()}`,
-      url: `https://via.placeholder.com/800x600?text=Evidência+${evidences.length + 1}`,
-      category: currentCategory,
-      notes: currentNotes
-    };
-    
-    const updatedEvidences = [...evidences, newImage];
-    setEvidences(updatedEvidences);
-    updateFormData({ evidences: updatedEvidences });
-    
-    // Reset state
-    setIsCapturing(false);
-    setCurrentNotes('');
+  // Function to compress an image
+  const compressImage = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          // Create canvas for compression
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+
+          // Maintain aspect ratio but limit max dimensions
+          const MAX_WIDTH = 1600;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Draw image on canvas
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to JPEG with 70% quality
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Could not compress image'));
+              }
+            },
+            'image/jpeg',
+            0.7 // 70% quality
+          );
+        };
+        img.onerror = () => {
+          reject(new Error('Could not load image'));
+        };
+      };
+      reader.onerror = () => {
+        reject(new Error('Could not read file'));
+      };
+    });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      // In a real app, you would upload the file to a server
-      // For our demo, we'll use a placeholder URL
-      
+  // Function to capture image from camera
+  const captureImage = async () => {
+    try {
+      // Check if the browser supports mediaDevices
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported in this browser');
+      }
+
+      // Request camera access
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+      // Create a video element to show the stream
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+
+      // Wait for video to be ready
+      await new Promise(resolve => {
+        video.onloadedmetadata = resolve;
+      });
+
+      // Create a canvas to capture the frame
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Draw the current video frame to the canvas
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+      ctx.drawImage(video, 0, 0);
+
+      // Stop the camera stream
+      stream.getTracks().forEach(track => track.stop());
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Could not capture image'));
+            }
+          },
+          'image/jpeg',
+          0.7 // 70% quality
+        );
+      });
+
+      // Create a file from the blob
+      const file = new File([blob], `evidence-${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+      // Compress the image
+      const compressedBlob = await compressImage(file);
+
+      // Create a URL for the compressed image
+      const imageUrl = URL.createObjectURL(compressedBlob);
+
+      // Create new evidence
       const newImage: EvidenceImage = {
         id: `evidence-${Date.now()}`,
-        url: URL.createObjectURL(file), // This creates a temporary URL in memory
+        url: imageUrl,
         category: currentCategory,
         notes: currentNotes
       };
-      
+
       const updatedEvidences = [...evidences, newImage];
       setEvidences(updatedEvidences);
       updateFormData({ evidences: updatedEvidences });
-      
+
       // Reset state
+      setIsCapturing(false);
       setCurrentNotes('');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    } catch (error) {
+      console.error('Error capturing image:', error);
+      // Fallback to placeholder if camera access fails
+      const newImage: EvidenceImage = {
+        id: `evidence-${Date.now()}`,
+        url: `https://via.placeholder.com/800x600?text=Evidência+${evidences.length + 1}`,
+        category: currentCategory,
+        notes: currentNotes
+      };
+
+      const updatedEvidences = [...evidences, newImage];
+      setEvidences(updatedEvidences);
+      updateFormData({ evidences: updatedEvidences });
+
+      // Reset state
+      setIsCapturing(false);
+      setCurrentNotes('');
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      try {
+        const file = e.target.files[0];
+
+        // Compress the image
+        const compressedBlob = await compressImage(file);
+
+        // Create a URL for the compressed image
+        const imageUrl = URL.createObjectURL(compressedBlob);
+
+        const newImage: EvidenceImage = {
+          id: `evidence-${Date.now()}`,
+          url: imageUrl,
+          category: currentCategory,
+          notes: currentNotes
+        };
+
+        const updatedEvidences = [...evidences, newImage];
+        setEvidences(updatedEvidences);
+        updateFormData({ evidences: updatedEvidences });
+
+        // Reset state
+        setCurrentNotes('');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (error) {
+        console.error('Error processing image:', error);
+        // Fallback to direct URL if compression fails
+        const file = e.target.files[0];
+        const imageUrl = URL.createObjectURL(file);
+
+        const newImage: EvidenceImage = {
+          id: `evidence-${Date.now()}`,
+          url: imageUrl,
+          category: currentCategory,
+          notes: currentNotes
+        };
+
+        const updatedEvidences = [...evidences, newImage];
+        setEvidences(updatedEvidences);
+        updateFormData({ evidences: updatedEvidences });
+
+        // Reset state
+        setCurrentNotes('');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
     }
   };
@@ -151,13 +319,13 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
 
   const updateImageDetails = () => {
     if (!selectedImage) return;
-    
+
     const updatedEvidences = evidences.map(ev => 
       ev.id === selectedImage.id 
         ? { ...ev, category: currentCategory, notes: currentNotes } 
         : ev
     );
-    
+
     setEvidences(updatedEvidences);
     updateFormData({ evidences: updatedEvidences });
     setIsEditingImage(false);
@@ -182,7 +350,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
     // Resetar modo de anotação
     setIsAnnotating(false);
   };
-  
+
   // Funções para anotações
   const startAnnotating = () => {
     setIsAnnotating(true);
@@ -200,40 +368,40 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
 
   const saveAnnotations = () => {
     if (!selectedImage) return;
-    
+
     const updatedEvidences = evidences.map(ev => 
       ev.id === selectedImage.id 
         ? { ...ev, annotations: annotations } 
         : ev
     );
-    
+
     setEvidences(updatedEvidences);
     updateFormData({ evidences: updatedEvidences });
     setIsAnnotating(false);
   };
-  
+
   // Função para obter coordenadas percentuais relativas ao contêiner da imagem
   const getRelativeCoordinates = (clientX: number, clientY: number) => {
     if (!imageContainerRef.current) return { x: 0, y: 0 };
-    
+
     const rect = imageContainerRef.current.getBoundingClientRect();
     const x = ((clientX - rect.left) / rect.width) * 100; // Coordenadas percentuais
     const y = ((clientY - rect.top) / rect.height) * 100;
-    
+
     return { x, y };
   };
-  
+
   // Tratar cliques para colocação de anotações - sistema de dois cliques
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAnnotating || !imageContainerRef.current) return;
-    
+
     // Sempre impedir comportamento padrão quando estamos no modo anotação
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Obter coordenadas relativas no contêiner da imagem
     const { x, y } = getRelativeCoordinates(e.clientX, e.clientY);
-    
+
     // Tratamento especial para texto
     if (annotationTool === 'text') {
       setIsAddingText(true);
@@ -241,12 +409,12 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
       setAnnotationText('');
       return;
     }
-    
+
     // Criação de anotações usando o sistema de dois cliques
     if (!tempAnnotation) {
       // Primeiro clique - Criar uma anotação inicial
       console.log("Primeiro clique em", x, y);
-      
+
       // Criar uma nova anotação temporária
       const initialAnnotation: Annotation = {
         type: annotationTool,
@@ -259,16 +427,16 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
         isPlacing: true,
         ...(annotationTool === 'arrow' && { endX: x + 10, endY: y + 10 })
       };
-      
+
       setTempAnnotation(initialAnnotation);
     } else {
       // Segundo clique - finalizar a anotação
       if (tempAnnotation.isPlacing) {
         console.log("Segundo clique em", x, y);
-        
+
         // Calcular a anotação final baseada no tipo e nas coordenadas
         let finalAnnotation: Annotation = { ...tempAnnotation, isPlacing: false };
-        
+
         if (annotationTool === 'arrow') {
           finalAnnotation = {
             ...finalAnnotation,
@@ -280,7 +448,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
           const deltaX = Math.abs(x - tempAnnotation.x);
           const deltaY = Math.abs(y - tempAnnotation.y);
           const radius = Math.max(deltaX, deltaY);
-          
+
           finalAnnotation = {
             ...finalAnnotation,
             width: radius * 2,
@@ -290,29 +458,29 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
           // Para retângulo, calculamos a largura e altura
           const width = Math.abs(x - tempAnnotation.x);
           const height = Math.abs(y - tempAnnotation.y);
-          
+
           finalAnnotation = {
             ...finalAnnotation,
             width: width,
             height: height
           };
         }
-        
+
         // Adicionar à lista de anotações
         setAnnotations([...annotations, finalAnnotation]);
-        
+
         // Limpar a anotação temporária
         setTempAnnotation(null);
       }
     }
   };
-  
+
   const addTextAnnotation = () => {
     if (!annotationText.trim()) {
       setIsAddingText(false);
       return;
     }
-    
+
     const newAnnotation: Annotation = {
       type: 'text',
       x: textPosition.x,
@@ -321,11 +489,11 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
       color: annotationColor,
       size: annotationSize
     };
-    
+
     setAnnotations([...annotations, newAnnotation]);
     setIsAddingText(false);
   };
-  
+
   const removeLastAnnotation = () => {
     if (annotations.length > 0) {
       setAnnotations(annotations.slice(0, -1));
@@ -347,7 +515,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                 <Camera className="h-4 w-4 mr-2" />
                 Capturar Foto
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -365,7 +533,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
               />
             </div>
           </div>
-          
+
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full justify-start mb-4 overflow-x-auto flex-nowrap">
               <TabsTrigger value="all" className="min-w-[80px]">Todas</TabsTrigger>
@@ -379,7 +547,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                 </TabsTrigger>
               ))}
             </TabsList>
-            
+
             <TabsContent value={activeTab} className="mt-0">
               {filteredEvidences.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -398,11 +566,11 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      
+
                       <div className="absolute p-1 text-[10px] font-medium bg-black/60 text-white bottom-0 left-0 right-0">
                         {categories.find(c => c.id === evidence.category)?.name || 'Geral'}
                       </div>
-                      
+
                       <div className="absolute top-0 right-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                         <Button
                           variant="secondary"
@@ -412,7 +580,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                         >
                           <Pencil className="h-3.5 w-3.5 text-foreground" />
                         </Button>
-                        
+
                         <Button
                           variant="destructive"
                           size="icon"
@@ -422,7 +590,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
-                      
+
                       {evidence.notes && (
                         <div className="absolute bottom-6 left-0 right-0 flex justify-center">
                           <div className="w-2 h-2 rounded-full bg-primary" />
@@ -460,7 +628,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
           </Tabs>
         </CardContent>
       </Card>
-      
+
       <div className="flex justify-between">
         <Button variant="outline" onClick={onPrevious}>
           Voltar
@@ -476,13 +644,21 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
           <DialogHeader>
             <DialogTitle>Capturar Evidência</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
-            <div className="aspect-[4/3] bg-muted rounded-md flex items-center justify-center">
-              <Camera className="h-10 w-10 text-muted-foreground" />
-              {/* In a real app, this would show the camera preview */}
+            <div className="aspect-[4/3] bg-muted rounded-md flex items-center justify-center relative">
+              <div id="camera-preview" className="absolute inset-0 flex items-center justify-center">
+                <Camera className="h-10 w-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mt-2">Clique em "Capturar Foto" para ativar a câmera</p>
+              </div>
+              <video 
+                id="camera-stream" 
+                className="w-full h-full object-cover hidden rounded-md"
+                autoPlay 
+                playsInline
+              ></video>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="category">Categoria</Label>
               <select
@@ -498,7 +674,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                 ))}
               </select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="notes">Observações</Label>
               <textarea
@@ -510,25 +686,64 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCapturing(false)}>
               Cancelar
             </Button>
-            <Button onClick={captureImage}>
+            <Button 
+              onClick={() => {
+                // Try to initialize camera preview when button is clicked
+                const videoElement = document.getElementById('camera-stream') as HTMLVideoElement;
+                const previewElement = document.getElementById('camera-preview');
+
+                if (videoElement && previewElement && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                  navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                      videoElement.srcObject = stream;
+                      videoElement.classList.remove('hidden');
+                      previewElement.classList.add('hidden');
+
+                      // Change button text to indicate it's ready to capture
+                      const button = document.activeElement as HTMLButtonElement;
+                      if (button) {
+                        button.textContent = 'Tirar Foto';
+
+                        // Replace the onClick handler to actually capture the photo
+                        button.onclick = () => {
+                          captureImage();
+
+                          // Stop the camera stream
+                          if (stream) {
+                            stream.getTracks().forEach(track => track.stop());
+                          }
+                        };
+                      }
+                    })
+                    .catch(err => {
+                      console.error('Error accessing camera:', err);
+                      // If camera access fails, just use the regular capture function
+                      captureImage();
+                    });
+                } else {
+                  // If mediaDevices is not supported, just use the regular capture function
+                  captureImage();
+                }
+              }}
+            >
               Capturar Foto
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Edit Image Dialog */}
       <Dialog open={isEditingImage} onOpenChange={setIsEditingImage}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Editar Evidência</DialogTitle>
           </DialogHeader>
-          
+
           {selectedImage && (
             <div className="space-y-4">
               <div className="aspect-[4/3] bg-muted rounded-md overflow-hidden">
@@ -538,7 +753,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                   className="w-full h-full object-cover"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="edit-category">Categoria</Label>
                 <select
@@ -554,7 +769,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                   ))}
                 </select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="edit-notes">Observações</Label>
                 <textarea
@@ -567,7 +782,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditingImage(false)}>
               Cancelar
@@ -578,7 +793,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* View Image Dialog */}
       <Dialog open={!!selectedImage && !isEditingImage} onOpenChange={() => setSelectedImage(null)}>
         <DialogContent className="max-w-3xl">
@@ -601,10 +816,10 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                     style={{ userSelect: 'none' }}
                     onMouseDown={(e) => isAnnotating && e.preventDefault()}
                   />
-                  
+
                   {/* Camada de anotações */}
                   <div className="absolute inset-0 pointer-events-none">
-                    
+
                     {/* Mensagem de instrução */}
                     {isAnnotating && !tempAnnotation && (
                       <div className="absolute top-2 left-0 right-0 flex justify-center">
@@ -613,7 +828,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Mensagem de segundo clique */}
                     {isAnnotating && tempAnnotation?.isPlacing && (
                       <div className="absolute bottom-2 left-0 right-0 flex justify-center">
@@ -623,7 +838,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Anotação temporária durante o desenho */}
                     {isAnnotating && tempAnnotation && (
                       <div 
@@ -783,7 +998,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                       </div>
                     ))}
                   </div>
-                  
+
                   {/* Modal de adição de texto */}
                   {isAddingText && (
                     <div 
@@ -822,7 +1037,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                     </div>
                   )}
                 </div>
-                
+
                 {/* Barra de ferramentas de anotação */}
                 {isAnnotating && (
                   <div className="mt-2 p-2 bg-secondary/50 rounded-md">
@@ -845,7 +1060,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                           <TooltipContent>Seta</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      
+
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -861,7 +1076,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                           <TooltipContent>Círculo</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      
+
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -877,7 +1092,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                           <TooltipContent>Retângulo</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      
+
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -893,9 +1108,9 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                           <TooltipContent>Texto</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      
+
                       <div className="h-6 w-[1px] bg-border mx-1"></div>
-                      
+
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button 
@@ -925,9 +1140,9 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                           </div>
                         </PopoverContent>
                       </Popover>
-                      
+
                       <div className="h-6 w-[1px] bg-border mx-1"></div>
-                      
+
                       <div className="flex items-center space-x-2 flex-1 min-w-[120px]">
                         <Label htmlFor="annotation-size" className="text-xs">Tamanho:</Label>
                         <Slider
@@ -940,9 +1155,9 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                           className="flex-1"
                         />
                       </div>
-                      
+
                       <div className="h-6 w-[1px] bg-border mx-1"></div>
-                      
+
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -960,7 +1175,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                    
+
                     <div className="flex justify-end mt-2 gap-2">
                       <Button 
                         variant="outline" 
@@ -979,7 +1194,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                   </div>
                 )}
               </div>
-              
+
               <div className="md:w-64 space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Categoria</h3>
@@ -987,7 +1202,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                     {categories.find(c => c.id === selectedImage.category)?.name || 'Geral'}
                   </p>
                 </div>
-                
+
                 {selectedImage.notes && (
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">Observações</h3>
@@ -996,7 +1211,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                     </p>
                   </div>
                 )}
-                
+
                 <div className="flex flex-col gap-2 pt-4">
                   {!isAnnotating && (
                     <Button
@@ -1008,7 +1223,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                       Anotar Imagem
                     </Button>
                   )}
-                
+
                   <Button
                     variant="outline"
                     size="sm"
@@ -1017,7 +1232,7 @@ const EvidenceStep: React.FC<EvidenceStepProps> = ({
                     <Pencil className="h-4 w-4 mr-2" />
                     Editar Detalhes
                   </Button>
-                  
+
                   <Button
                     variant="destructive"
                     size="sm"
