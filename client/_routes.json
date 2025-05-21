@@ -1,7 +1,16 @@
 {
   "version": 1,
   "include": ["/", "/*"],
-  "exclude": ["/api/*"],
+  "exclude": [],
+  "functions": {
+    "/api/*": {
+      "bindings": [{
+        "name": "DB",
+        "type": "d1",
+        "databaseName": "bra-elite-db"
+      }]
+    }
+  },
   "rules": [
     {
       "type": "navigate",
