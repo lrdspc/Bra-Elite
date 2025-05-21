@@ -1,5 +1,29 @@
 {
   "version": 1,
-  "include": ["/*"],
-  "exclude": ["/assets/*"]
+  "include": ["/", "/*"],
+  "exclude": ["/api/*"],
+  "rules": [
+    {
+      "type": "navigate",
+      "regex": "^[^.]+$|\\.(html|json)$",
+      "dest": "/index.html",
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate"
+      }
+    },
+    {
+      "type": "static",
+      "regex": "^/assets/.*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "type": "static",
+      "regex": "^/.*\\.(js|css|svg|png)$",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    }
+  ]
 }

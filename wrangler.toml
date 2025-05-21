@@ -1,0 +1,26 @@
+name = "bra-elite"
+main = "server/index.ts"
+compatibility_date = "2024-01-01"
+
+[site]
+source = "client/dist"
+entry-point = "server/index.ts"
+
+[build]
+command = "npm run build"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+[[kv_namespaces]]
+id = "bra-elite-kv"
+preview_id = "bra-elite-kv-preview"
+binding = "KV_STORE"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bra-elite-db"
+database_id = "bra-elite-db-id"
+
+[triggers]
+crons = ["0 0 * * *"] # Executa diariamente à meia-noite
