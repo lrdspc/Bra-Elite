@@ -10,6 +10,9 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare let self: ServiceWorkerGlobalScope;
 
+// Manifesto do PWA que será injetado pelo plugin vite-plugin-pwa
+declare const self.__WB_MANIFEST: any;
+
 // Ativa o service worker imediatamente
 self.skipWaiting();
 clientsClaim();
