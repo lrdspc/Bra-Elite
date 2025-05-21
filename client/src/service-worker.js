@@ -1,6 +1,9 @@
 // This is a basic service worker implementation
 // It will be enhanced by Vite PWA plugin during build
 
+// Required for Vite PWA plugin
+const manifest = self.__WB_MANIFEST;
+
 const CACHE_NAME = 'brasilit-cache-v1';
 const urlsToCache = [
   '/',
