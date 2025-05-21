@@ -17,10 +17,13 @@ export default defineConfig({
         swDest: 'service-worker.js',
       },
       manifest: {
-        name: 'Brasilit',
+        name: 'Brasilit Elite',
         short_name: 'Brasilit',
-        description: 'Sistema de Gestão de Inspeções',
-        theme_color: '#ffffff',
+        description: 'Sistema de Gestão de Inspeções e Vistorias Técnicas',
+        theme_color: '#0f172a',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
         icons: [
           {
             src: 'brasilit-icon-192.png',
