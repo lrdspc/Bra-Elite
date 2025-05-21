@@ -13,6 +13,9 @@ declare let self: ServiceWorkerGlobalScope;
 // Manifesto do PWA que será injetado pelo plugin vite-plugin-pwa
 declare const self.__WB_MANIFEST: any;
 
+// Referência necessária para injeção do manifesto
+self.__WB_MANIFEST;
+
 // Ativa o service worker imediatamente
 self.skipWaiting();
 clientsClaim();
