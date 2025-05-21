@@ -3,7 +3,9 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./context/AuthContext";
-import { useEffect } from "react";
+import { PWAUpdater } from "./components/pwa/PWAUpdater";
+import { InstallButton } from "./components/pwa/InstallButton";
+import { OfflineIndicator } from "./components/pwa/OfflineIndicator";
 
 // Layouts
 import AuthLayout from "./components/layouts/AuthLayout";
@@ -23,16 +25,8 @@ import NewInspectionPage from "./pages/inspection/new";
 import InspectionDetailPage from "./pages/inspection/[id]";
 import NotFound from "./pages/not-found";
 
-// PWA initialization
-import { registerServiceWorker } from "./lib/pwa";
-
 function Router() {
   const [location] = useLocation();
-  
-  // Register service worker for PWA functionality
-  useEffect(() => {
-    registerServiceWorker();
-  }, []);
 
   return (
     <Switch>
@@ -118,8 +112,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
         <Toaster />
+        <Router />
+        <PWAUpdater />
+        <InstallButton />
+        <OfflineIndicator />
       </AuthProvider>
     </QueryClientProvider>
   );

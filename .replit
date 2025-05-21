@@ -1,5 +1,14 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm run dev"
+run = "npm run dev:all"
+
+# Enable multiple ports for development
+[[ports]]
+  localPort = 3000
+  externalPort = 3000
+
+[[ports]]
+  localPort = 8080
+  externalPort = 8080
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { LoaderCircle, Mail, Lock, User, Google } from 'lucide-react';
+import { LoaderCircle, Mail, Lock, User, LogIn } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -358,7 +358,7 @@ const LoginPage: React.FC = () => {
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
                 >
-                  <Google className="h-4 w-4" />
+                  <LogIn className="h-4 w-4" />
                   Entrar com Google
                 </Button>
 
