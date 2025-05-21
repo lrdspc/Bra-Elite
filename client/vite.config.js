@@ -13,7 +13,7 @@ export default defineConfig({
       filename: 'service-worker.js',
       strategies: 'injectManifest',
       injectManifest: {
-        swSrc: 'src/service-worker.js',
+        swSrc: 'src/service-worker.ts',
         swDest: 'service-worker.js',
       },
       manifest: {
