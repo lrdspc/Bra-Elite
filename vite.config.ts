@@ -163,6 +163,11 @@ export default defineConfig(({ mode }) => {
       navigateFallback: 'index.html',
       suppressWarnings: true,
     },
+    injectManifest: {
+      globPatterns: [
+        '**/*.{js,css,html,ico,png,svg,jpg,jpeg,gif,webp,woff,woff2,ttf,eot,json}'
+      ]
+    },
   };
 
   return {
