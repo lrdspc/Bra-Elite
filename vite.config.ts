@@ -15,10 +15,11 @@ export default defineConfig(({ mode }) => {
 
   // Configuração do VitePWA
   const pwaOptions = {
+    // Configuração básica do PWA
     strategies: 'injectManifest' as const,
     srcDir: 'src',
     filename: 'service-worker.js',
-    registerType: 'autoUpdate' as const,
+    registerType: isProduction ? 'autoUpdate' as const : undefined,
     injectRegister: 'auto' as const,
     includeAssets: [
       'brasilit-icon-192-maskable.png', 
@@ -157,7 +158,7 @@ export default defineConfig(({ mode }) => {
       ],
     },
     devOptions: {
-      enabled: true,
+      enabled: isProduction,
       type: 'module' as const,
       navigateFallback: 'index.html',
       suppressWarnings: true,
@@ -173,7 +174,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "src"),
+        "@": path.resolve(__dirname, "client/src"),
         "@shared": path.resolve(__dirname, "shared"),
       },
     },
