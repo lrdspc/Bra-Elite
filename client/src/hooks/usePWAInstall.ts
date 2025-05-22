@@ -1,73 +1,62 @@
 import { useState, useEffect } from 'react';
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-};
-
+/**
+ * Hook para gerenciar a instalação do PWA
+ */
 export function usePWAInstall() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Previne o navegador de mostrar o prompt de instalação automático
-      e.preventDefault();
-      
-      // Guarda o evento para ser usado depois
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setCanInstall(true);
-      
-      console.log('beforeinstallprompt event fired');
-    };
-
-    const handleAppInstalled = () => {
-      console.log('PWA installed');
-      setIsInstalled(true);
-      setCanInstall(false);
-    };
-
     // Verifica se o app já está instalado
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('App is running in standalone mode');
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        window.navigator.standalone === true) {
       setIsInstalled(true);
-      setCanInstall(false);
     }
 
-    // Adiciona os event listeners
+    // Captura o evento beforeinstallprompt
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    // Detecta quando o app é instalado
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setIsInstallable(false);
+      setDeferredPrompt(null);
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Limpa os event listeners quando o componente for desmontado
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
+  // Função para mostrar o prompt de instalação
   const promptInstall = async () => {
-    if (!deferredPrompt) return false;
-    
-    try {
-      // Mostra o prompt de instalação
-      deferredPrompt.prompt();
-      
-      // Espera pelo resultado do prompt
-      const { outcome } = await deferredPrompt.userChoice;
-      
-      console.log(`User response to the install prompt: ${outcome}`);
-      
-      // Limpa o prompt salvo, pois só pode ser usado uma vez
-      setDeferredPrompt(null);
-      setCanInstall(false);
-      
-      return outcome === 'accepted';
-    } catch (error) {
-      console.error('Error during installation prompt:', error);
+    if (!deferredPrompt) {
       return false;
     }
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    setIsInstallable(false);
+    
+    return outcome === 'accepted';
   };
 
-  return { canInstall, isInstalled, promptInstall };
+  return {
+    isInstallable,
+    isInstalled,
+    promptInstall
+  };
 }
+
+export default usePWAInstall;

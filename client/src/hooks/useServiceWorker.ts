@@ -1,124 +1,82 @@
 import { useState, useEffect } from 'react';
+import { Workbox } from 'workbox-window';
 
-type Workbox = {
-  messageSkipWaiting: () => Promise<void>;
-  addEventListener: (type: string, callback: (event?: Event) => void) => void;
-  register: () => Promise<ServiceWorkerRegistration>;
-};
-
-declare global {
-  interface Window {
-    workbox?: Workbox;
-  }
-}
-
-type ServiceWorkerEvent = Event & {
-  target: ServiceWorkerRegistration;
-};
-
+/**
+ * Hook para gerenciar o service worker
+ * @returns Um objeto com o estado do service worker e métodos relacionados
+ */
 export function useServiceWorker() {
-  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const [wb, setWb] = useState<Workbox | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !window.workbox) {
-      return;
-    }
+    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+      const workbox = new Workbox('/service-worker.js', { 
+        // Importante para garantir que o service worker seja atualizado corretamente
+        immediateControl: true
+      });
 
-    const wb = window.workbox;
-    
-    // Verificar atualizações quando o Service Worker estiver pronto
-    const handleWaiting = (event: Event) => {
-      const customEvent = event as unknown as ServiceWorkerEvent;
-      if (customEvent.target) {
-        setRegistration(customEvent.target);
+      // Evento disparado quando há uma nova versão do service worker
+      workbox.addEventListener('waiting', () => {
         setUpdateAvailable(true);
-      }
-    };
+      });
 
-    // Registrar o Service Worker
-    const registerSW = async () => {
-      try {
-        const reg = await wb.register();
-        console.log('Service Worker registrado com sucesso:', reg);
-        
-        // Verificar se há uma atualização disponível
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setRegistration(reg);
-                setUpdateAvailable(true);
-              }
-            });
-          }
+      // Evento disparado quando o service worker é instalado
+      workbox.addEventListener('installed', (event) => {
+        if (event.isUpdate) {
+          setUpdateAvailable(true);
+        }
+      });
+
+      // Evento disparado quando o service worker é ativado
+      workbox.addEventListener('activated', (event) => {
+        if (event.isUpdate) {
+          // Recarrega a página para usar o novo service worker
+          window.location.reload();
+        }
+      });
+
+      // Registra o service worker
+      workbox.register()
+        .then(reg => {
+          setRegistration(reg);
+        })
+        .catch(err => {
+          console.error('Erro ao registrar o service worker:', err);
         });
-        
-        return reg;
-      } catch (error) {
-        console.error('Erro ao registrar Service Worker:', error);
-        return null;
-      }
-    };
-    
-    // Adiciona o event listener para atualizações
-    const handleWaitingWrapper = (e?: Event) => {
-      if (e) handleWaiting(e);
-    };
-    
-    wb.addEventListener('waiting', handleWaitingWrapper);
-    
-    // Registra o Service Worker
-    registerSW();
-    
-    // Verifica atualizações a cada hora
-    const checkForUpdates = () => {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistration()
-          .then(reg => reg?.update())
-          .catch(console.error);
-      }
-    };
-    
-    const intervalId = setInterval(checkForUpdates, 60 * 60 * 1000);
-    
-    // Verifica atualizações na inicialização
-    checkForUpdates();
 
-    // Limpa o intervalo quando o componente for desmontado
-    return () => {
-      clearInterval(intervalId);
-    };
+      setWb(workbox);
+
+      // Monitora o status da conexão
+      const handleOnline = () => setIsOffline(false);
+      const handleOffline = () => setIsOffline(true);
+
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
   }, []);
 
-  const updateServiceWorker = async () => {
-    if (!registration?.waiting) return false;
-    
-    try {
-      setIsUpdating(true);
-      
-      // Envia uma mensagem para o Service Worker para pular a espera
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-      
-      // Aguarda o novo Service Worker ativar
-      return new Promise<boolean>((resolve) => {
-        const handleControllerChange = () => {
-          setIsUpdating(false);
-          setUpdateAvailable(false);
-          resolve(true);
-          window.location.reload();
-        };
-        
-        navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange, { once: true });
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar o Service Worker:', error);
-      setIsUpdating(false);
-      return false;
+  // Função para atualizar o service worker
+  const update = () => {
+    if (wb && updateAvailable) {
+      // Envia mensagem para o service worker pular a espera e ativar-se
+      wb.messageSkipWaiting();
     }
   };
 
-  return { updateAvailable, isUpdating, updateServiceWorker };
+  return {
+    updateAvailable,
+    update,
+    registration,
+    isOffline
+  };
 }
+
+export default useServiceWorker;

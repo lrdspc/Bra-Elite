@@ -1,144 +1,90 @@
-import { addToSyncQueue, getSyncQueue, removeFromSyncQueue, updateSyncQueueItem, clearAllData } from './db';
+import { openDB } from 'idb';
 
-// Re-export isOnline to avoid import errors
-export function isOnline(): boolean {
-  return typeof navigator !== 'undefined' && navigator.onLine === true;
-}
-
-// Re-export clearAllData function
-export { clearAllData };
-
-// Register service worker
-export async function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js', {
-        scope: '/'
-      });
-      
-      console.log('ServiceWorker registered with scope:', registration.scope);
-      
-      // Set up periodic sync if browser supports it
-      setupPeriodicSync();
-      
-      // Process sync queue when online
-      window.addEventListener('online', processSyncQueue);
-      
-      return registration;
-    } catch (error) {
-      console.error('ServiceWorker registration failed:', error);
-    }
-  }
-}
-
-// Set up periodic background sync if supported
-async function setupPeriodicSync() {
-  if ('periodicSync' in navigator.serviceWorker) {
-    try {
-      const status = await navigator.permissions.query({
-        name: 'periodic-background-sync' as any,
-      });
-      
-      if (status.state === 'granted') {
-        const registration = await navigator.serviceWorker.ready;
-        if ('periodicSync' in registration) {
-          await (registration as any).periodicSync.register('sync-data', {
-            minInterval: 15 * 60 * 1000, // 15 minutes
-          });
-          console.log('Periodic background sync registered');
-        }
+/**
+ * Inicializa o banco de dados IndexedDB para armazenamento offline
+ */
+export async function initializeOfflineDB() {
+  const db = await openDB('brasilit-offline-db', 1, {
+    upgrade(db) {
+      // Armazena inspeções para sincronização posterior
+      if (!db.objectStoreNames.contains('inspections')) {
+        const inspectionsStore = db.createObjectStore('inspections', { 
+          keyPath: 'id',
+          autoIncrement: true 
+        });
+        inspectionsStore.createIndex('status', 'status');
+        inspectionsStore.createIndex('syncStatus', 'syncStatus');
       }
-    } catch (error) {
-      console.error('Periodic background sync registration failed:', error);
-    }
-  }
-}
-
-// Process the sync queue when the device goes back online
-export async function processSyncQueue() {
-  if (!isOnline()) return;
-  
-  const queue = await getSyncQueue();
-  if (queue.length === 0) return;
-  
-  console.log(`Processing ${queue.length} items in sync queue`);
-  
-  // Process items in order (oldest first)
-  const sortedQueue = [...queue].sort((a, b) => a.timestamp - b.timestamp);
-  
-  for (const item of sortedQueue) {
-    try {
-      // Increment attempt count
-      await updateSyncQueueItem(item.id, { attempts: item.attempts + 1 });
       
-      // Make the request
-      const response = await fetch(item.url, {
-        method: item.method,
-        headers: {
-          'Content-Type': 'application/json',
-          // Include auth headers if needed
-        },
-        body: item.body ? JSON.stringify(item.body) : undefined,
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        // If successful, remove from queue
-        await removeFromSyncQueue(item.id);
-        console.log(`Successfully synced item: ${item.id}`);
-      } else {
-        // If max attempts reached (5), remove from queue
-        if (item.attempts >= 5) {
-          await removeFromSyncQueue(item.id);
-          console.error(`Max attempts reached for sync item: ${item.id}, removing from queue`);
-        } else {
-          console.error(`Failed to sync item: ${item.id}, status: ${response.status}`);
-        }
+      // Armazena imagens para sincronização posterior
+      if (!db.objectStoreNames.contains('images')) {
+        const imagesStore = db.createObjectStore('images', { 
+          keyPath: 'id',
+          autoIncrement: true 
+        });
+        imagesStore.createIndex('inspectionId', 'inspectionId');
+        imagesStore.createIndex('syncStatus', 'syncStatus');
       }
-    } catch (error) {
-      console.error(`Error syncing item: ${item.id}`, error);
-    }
-  }
-}
-
-// Add a fetch request to the sync queue
-export async function queueRequest(method: string, url: string, body?: any) {
-  await addToSyncQueue(method, url, body);
-  
-  // Try to process immediately if online
-  if (isOnline()) {
-    processSyncQueue();
-  }
-}
-
-// Check if app needs update
-export async function checkForUpdates() {
-  if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.ready;
-    
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
       
-      newWorker?.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New version installed but waiting to activate
-          if (confirm('Nova versão disponível! Recarregar para atualizar?')) {
-            window.location.reload();
-          }
-        }
-      });
-    });
-  }
+      // Armazena dados do usuário
+      if (!db.objectStoreNames.contains('userData')) {
+        db.createObjectStore('userData', { keyPath: 'id' });
+      }
+    }
+  });
+  
+  return db;
 }
 
-// Manually check for service worker updates
-export async function checkForServiceWorkerUpdates() {
-  if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.ready;
+/**
+ * Registra uma tarefa para sincronização em segundo plano
+ * @param tag Nome da tag de sincronização
+ */
+export async function registerBackgroundSync(tag: string) {
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
     try {
-      await registration.update();
+      const registration = await navigator.serviceWorker.ready;
+      await registration.sync.register(tag);
+      return true;
     } catch (error) {
-      console.error('Error updating service worker:', error);
+      console.error('Erro ao registrar sincronização em segundo plano:', error);
+      return false;
     }
   }
+  return false;
+}
+
+/**
+ * Solicita permissão para enviar notificações push
+ */
+export async function requestNotificationPermission() {
+  if ('Notification' in window) {
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  }
+  return false;
+}
+
+/**
+ * Verifica se o aplicativo está sendo executado no modo standalone (instalado)
+ */
+export function isRunningStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as any).standalone === true;
+}
+
+/**
+ * Verifica se o dispositivo está online
+ */
+export function isOnline() {
+  return navigator.onLine;
+}
+
+/**
+ * Verifica se o navegador suporta recursos PWA
+ */
+export function isPWASupported() {
+  return 'serviceWorker' in navigator && 
+         'caches' in window &&
+         window.fetch !== undefined;
 }

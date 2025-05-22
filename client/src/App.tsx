@@ -1,125 +1,65 @@
-import { Switch, Route, useLocation } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "./context/AuthContext";
-import { PWAUpdater } from "./components/pwa/PWAUpdater";
-import { InstallButton } from "./components/pwa/InstallButton";
-import { OfflineIndicator } from "./components/pwa/OfflineIndicator";
+import { queryClient } from "./lib/queryClient";
 
 // Layouts
-import AuthLayout from "./components/layouts/AuthLayout";
 import AppLayout from "./components/layouts/AppLayout";
+import AuthLayout from "./components/layouts/AuthLayout";
 
 // Pages
-import LoginPage from "./pages/login";
-import DashboardPage from "./pages/dashboard";
-import ClientsPage from "./pages/clients";
-import ProjectsPage from "./pages/projects";
-import InspectionsPage from "./pages/inspections";
-import CalendarPage from "./pages/calendar";
-import ReportsPage from "./pages/reports";
-import SettingsPage from "./pages/settings";
-import ProfilePage from "./pages/profile";
-import NewInspectionPage from "./pages/inspection/new";
-import InspectionDetailPage from "./pages/inspection/[id]";
+import Dashboard from "./pages/dashboard";
+import Inspections from "./pages/inspections";
+import NewInspection from "./pages/inspection/new";
+import InspectionDetails from "./pages/inspection/[id]";
+import Calendar from "./pages/calendar";
+import Clients from "./pages/clients";
+import Projects from "./pages/projects";
+import Reports from "./pages/reports";
+import Settings from "./pages/settings";
+import Profile from "./pages/profile";
+import Login from "./pages/login";
 import NotFound from "./pages/not-found";
 
-function Router() {
-  const [location] = useLocation();
+// PWA Components
+import OfflineIndicator from "./components/pwa/OfflineIndicator";
+import InstallButton from "./components/pwa/InstallButton";
 
-  return (
-    <Switch>
-      {/* Public routes */}
-      <Route path="/login">
-        <AuthLayout>
-          <LoginPage />
-        </AuthLayout>
-      </Route>
-      
-      {/* Protected routes */}
-      <Route path="/">
-        <AppLayout>
-          <DashboardPage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/clients">
-        <AppLayout>
-          <ClientsPage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/projects">
-        <AppLayout>
-          <ProjectsPage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/inspections">
-        <AppLayout>
-          <InspectionsPage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/calendar">
-        <AppLayout>
-          <CalendarPage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/reports">
-        <AppLayout>
-          <ReportsPage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/settings">
-        <AppLayout>
-          <SettingsPage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/profile">
-        <AppLayout>
-          <ProfilePage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/inspection/new">
-        <AppLayout>
-          <NewInspectionPage />
-        </AppLayout>
-      </Route>
-      
-      <Route path="/inspection/:id">
-        {params => (
-          <AppLayout>
-            <InspectionDetailPage id={params.id} />
-          </AppLayout>
-        )}
-      </Route>
-      
-      {/* Fallback 404 route */}
-      <Route>
-        <NotFound />
-      </Route>
-    </Switch>
-  );
-}
-
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Toaster />
-        <Router />
-        <PWAUpdater />
-        <InstallButton />
+      <Router>
+        <Routes>
+          {/* Rotas autenticadas */}
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="inspections" element={<Inspections />} />
+            <Route path="inspection/new" element={<NewInspection />} />
+            <Route path="inspection/:id" element={<InspectionDetails />} />
+            <Route path="calendar" element={<Calendar />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="projects" element={<Projects />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
+          
+          {/* Rotas de autenticação */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+          </Route>
+          
+          {/* Rota 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        
+        {/* Componentes PWA */}
         <OfflineIndicator />
-      </AuthProvider>
+        
+        {/* Botão de instalação do PWA */}
+        <div className="fixed top-4 right-4 z-50">
+          <InstallButton />
+        </div>
+      </Router>
     </QueryClientProvider>
   );
 }
-
-export default App;

@@ -1,67 +1,66 @@
-# Brasilit PWA - Sistema de Vistorias Técnicas
+# Brasilit Vistorias Técnicas PWA
 
-Um aplicativo web progressivo (PWA) desenvolvido para a Brasilit, permitindo que técnicos realizem vistorias de campo com recursos offline robustos e funcionalidades avançadas.
+Aplicativo web progressivo (PWA) para vistorias técnicas da Brasilit - Saint-Gobain.
 
-## Principais Funcionalidades
+## Estrutura do Projeto
 
-- ✅ **Operação Offline**: Funcionamento completo em áreas sem conexão com sincronização automática ao retornar online
-- 📱 **Design Mobile-First**: Interface otimizada para dispositivos móveis, com suporte completo a tablets e desktops
-- 📋 **Workflow de Inspeção**: Processo guiado em etapas para coleta de dados estruturada
-- 📷 **Captura de Evidências**: Fotos com marcações e anotações durante as vistorias
-- 📍 **Geolocalização**: Registro automático de coordenadas e preenchimento de endereços
-- 📊 **Relatórios Detalhados**: Geração automática de relatórios com todas as evidências coletadas
-- 🔄 **Sincronização**: Sistema robusto de sincronização com o servidor principal
+O projeto foi reorganizado para seguir as melhores práticas de PWA:
 
-## Tecnologias
-
-- **Frontend**: React.js com TypeScript
-- **UI**: Tailwind CSS com componentes shadcn/ui
-- **Armazenamento Local**: IndexedDB para persistência offline
-- **PWA**: Suporte total a recursos PWA (Service Workers, Cache API, etc)
-- **Backend**: Node.js com Express
-- **Dados**: Suporte a PostgreSQL e armazenamento em memória para desenvolvimento
-
-## Pré-requisitos
-
-- Node.js 20.x
-- npm 10.x ou superior
-
-## Instalação
-
-```bash
-# Clone o repositório
-git clone https://github.com/brasilit/pwa-vistorias.git
-cd pwa-vistorias
-
-# Instale as dependências
-npm install
-
-# Inicie o servidor de desenvolvimento
-npm run dev
+```
+client/
+├── public/               # Arquivos públicos
+│   ├── manifest.json     # Configuração do PWA
+│   ├── offline.html      # Página offline
+│   └── icons/            # Ícones do aplicativo
+├── src/
+│   ├── components/       # Componentes React
+│   │   └── pwa/          # Componentes específicos do PWA
+│   ├── hooks/            # Hooks personalizados
+│   │   ├── useNetworkStatus.ts
+│   │   ├── usePWAInstall.ts
+│   │   └── useServiceWorker.ts
+│   ├── lib/
+│   │   └── pwa.ts        # Utilitários para PWA
+│   └── pages/            # Páginas da aplicação
 ```
 
-## Uso em Produção
+## Funcionalidades PWA
 
-Para compilar o aplicativo para produção:
+- **Instalável**: O aplicativo pode ser instalado em dispositivos móveis e desktop
+- **Offline**: Funciona mesmo sem conexão com a internet
+- **Sincronização em segundo plano**: Sincroniza dados quando a conexão é restabelecida
+- **Notificações push**: Receba notificações importantes
+- **Atualizações automáticas**: Notifica o usuário quando há uma nova versão
+
+## Desenvolvimento
 
 ```bash
+# Instalar dependências
+npm install
+
+# Iniciar servidor de desenvolvimento
+npm run dev
+
+# Gerar assets do PWA
+npm run generate:pwa-assets
+
+# Construir para produção
 npm run build
 ```
 
-Os arquivos otimizados serão gerados no diretório `dist`.
+## Tecnologias
 
-## Contribuição
+- React + TypeScript
+- Vite + PWA Plugin
+- Workbox para cache e estratégias offline
+- IndexedDB para armazenamento local
+- Service Workers para funcionalidades offline
 
-1. Faça o fork do projeto
-2. Crie sua branch de funcionalidade (`git checkout -b feature/nova-funcionalidade`)
-3. Faça commit de suas alterações (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Envie para o branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+## Melhores Práticas Implementadas
 
-## Licença
-
-Todos os direitos reservados à Brasilit © 2025. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## Contato
-
-Para questões relacionadas ao projeto, entre em contato com a equipe de desenvolvimento da Brasilit.
+1. **Service Worker Otimizado**: Estratégias de cache adequadas para diferentes tipos de recursos
+2. **Manifest Completo**: Configuração completa do Web App Manifest
+3. **Experiência Offline**: Página offline personalizada e sincronização em segundo plano
+4. **Instalação Simplificada**: Botão de instalação e detecção de compatibilidade
+5. **Atualizações Transparentes**: Notificação de novas versões disponíveis
+6. **Performance**: Otimização de cache e carregamento de recursos

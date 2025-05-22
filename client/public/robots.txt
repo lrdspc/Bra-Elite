@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vistorias.brasilit.com.br/sitemap.xml

@@ -1,34 +1,22 @@
-import { WifiOff, Wifi } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import React from 'react';
+import useNetworkStatus from '../../hooks/useNetworkStatus';
 
-export function OfflineIndicator() {
-  const { isOnline, wasOffline } = useNetworkStatus();
-  
-  // Não mostra nada se estiver online e não tiver acabado de voltar do offline
-  if (isOnline && !wasOffline) return null;
+/**
+ * Componente que exibe um indicador quando o usuário está offline
+ */
+export default function OfflineIndicator() {
+  const { isOnline } = useNetworkStatus();
+
+  if (isOnline) {
+    return null;
+  }
 
   return (
-    <div 
-      className={cn(
-        'fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50',
-        'px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium shadow-lg',
-        isOnline 
-          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-      )}
-    >
-      {isOnline ? (
-        <>
-          <Wifi className="h-4 w-4" />
-          <span>Você está online novamente</span>
-        </>
-      ) : (
-        <>
-          <WifiOff className="h-4 w-4" />
-          <span>Você está offline. Algumas funcionalidades podem estar limitadas.</span>
-        </>
-      )}
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-full shadow-lg bg-amber-500 text-white">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-amber-200 animate-pulse"></div>
+        <span className="text-sm font-medium">Você está offline</span>
+      </div>
     </div>
   );
 }

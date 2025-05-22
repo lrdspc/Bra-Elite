@@ -1,26 +1,37 @@
-import { Button } from '@/components/ui/button';
-import { DownloadIcon } from '@radix-ui/react-icons';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
+import React from 'react';
+import usePWAInstall from '../../hooks/usePWAInstall';
 
-export function InstallButton() {
-  const { canInstall, isInstalled, promptInstall } = usePWAInstall();
+/**
+ * Botão para instalar o PWA
+ */
+export default function InstallButton() {
+  const { isInstallable, promptInstall } = usePWAInstall();
 
-  // Não mostra o botão se o app já estiver instalado ou se não puder ser instalado
-  if (isInstalled || !canInstall) return null;
-
-  const handleInstallClick = async () => {
-    await promptInstall();
-  };
+  if (!isInstallable) {
+    return null;
+  }
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleInstallClick}
-      className="fixed bottom-4 left-4 z-50 flex items-center gap-2 shadow-lg"
+    <button
+      onClick={promptInstall}
+      className="flex items-center gap-2 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white transition-colors"
     >
-      <DownloadIcon className="h-4 w-4" />
-      Instalar App
-    </Button>
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        width="16" 
+        height="16" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+      Instalar app
+    </button>
   );
 }

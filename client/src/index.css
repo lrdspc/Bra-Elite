@@ -4,13 +4,8 @@
 
 @layer base {
   :root {
-    /* Cores da Brasilit */
-    --brasilit-red: 358 85% 52%;        /* #EE1B24 - Vermelho principal */
-    --brasilit-yellow: 56 100% 50%;     /* #FFEB00 - Amarelo */
-    --brasilit-blue: 211 100% 31%;      /* #00529C - Azul */
-    
-    --background: 0 0% 100%;            /* Branco */
-    --foreground: 222.2 84% 4.9%;       /* Preto para texto */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -18,278 +13,188 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 358 85% 52%;             /* Vermelho Brasilit */
-    --primary-foreground: 0 0% 100%;    /* Branco */
+    --primary: 355 84% 53%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 56 100% 50%;           /* Amarelo Brasilit */
-    --secondary-foreground: 222.2 84% 4.9%; /* Texto preto para fundo amarelo */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 211 100% 31%;             /* Azul Brasilit */
-    --accent-foreground: 0 0% 100%;     /* Branco */
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 358 85% 52%;                /* Vermelho Brasilit */
+    --ring: 222.2 84% 4.9%;
 
-    --radius: 0.375rem;
-    
-    --success: 135 50% 43%;
-    --success-foreground: 210 40% 98%;
-    
-    --chart-1: 358 85% 52%;             /* Vermelho Brasilit */
-    --chart-2: 56 100% 50%;             /* Amarelo Brasilit */
-    --chart-3: 211 100% 31%;            /* Azul Brasilit */
-    --chart-4: 135 50% 43%;             /* Verde */
-    --chart-5: 262 83% 58%;             /* Roxo */
-    
-    /* Variáveis para layout responsivo */
-    --header-height: 56px;              /* Altura padrão do cabeçalho móvel */
-    --bottom-nav-height: 56px;          /* Altura da barra de navegação inferior */
-    --content-padding: 1rem;            /* Preenchimento padrão para conteúdo */
+    --radius: 0.5rem;
   }
 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 355 84% 53%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden; /* Prevenir overflow horizontal */
-  }
-  
-  /* Ajusta automaticamente o espaçamento quando o cabeçalho está visível */
-  @media (max-width: 768px) {
-    main {
-      padding-top: 0;
-    }
-    
-    .content-area {
-      min-height: calc(100vh - var(--bottom-nav-height));
-      padding-bottom: calc(var(--bottom-nav-height) + 1rem);
-    }
-    
-    /* Permitir que o conteúdo seja exibido logo abaixo do cabeçalho fixo */
-    body {
-      scroll-padding-top: var(--header-height);
-    }
-    
-    /* Ajustar espaçamento para o cabeçalho móvel */
-    .header-spacer {
-      height: var(--header-height);
-      display: block;
-    }
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Custom scroll styling */
-.scroll-thin::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+/* Melhorias para dispositivos com notch */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
-.scroll-thin::-webkit-scrollbar-thumb {
-  @apply bg-neutral-400/50 rounded-sm;
+/* Desabilita o comportamento de pull-to-refresh em dispositivos móveis */
+html, body {
+  overscroll-behavior-y: none;
 }
 
-/* Form fields focus styling */
-input:focus, 
-select:focus, 
-textarea:focus {
-  @apply outline-none ring-2 ring-primary/30;
+/* Animação para a barra de carregamento */
+@keyframes loadingBar {
+  0% { width: 0; transform: translateX(-100%); }
+  50% { width: 50%; }
+  100% { width: 0; transform: translateX(200%); }
 }
 
-/* Custom animation for loading indicators */
-@keyframes pulse-custom {
+.animate-loading-bar {
+  animation: loadingBar 1.5s infinite;
+}
+
+/* Estilos para o indicador de offline */
+.offline-indicator {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f59e0b;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.offline-indicator .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: white;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.7;
+    opacity: 0.5;
+    transform: scale(0.8);
   }
 }
 
-.animate-pulse-custom {
-  animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Ajustes para cards no dashboard */
-.grid-cols-2 .card,
-.grid-cols-4 .card {
-  height: 100%;
+/* Estilos para o botão de instalação do PWA */
+.install-button {
   display: flex;
-  flex-direction: column;
-}
-
-.grid-cols-2 .card .card-content,
-.grid-cols-4 .card .card-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-/* Estilos da Brasilit */
-.bg-brasilit-red {
+  align-items: center;
+  gap: 0.5rem;
   background-color: #EE1B24;
   color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
-.bg-brasilit-yellow {
-  background-color: #FFEB00;
-  color: black;
+.install-button:hover {
+  background-color: #d81921;
 }
 
-.bg-brasilit-blue {
-  background-color: #00529C;
+.install-button:active {
+  transform: scale(0.98);
+}
+
+/* Estilos para o indicador de sincronização */
+.sync-indicator {
+  position: fixed;
+  bottom: 4rem;
+  right: 1rem;
+  background-color: #3b82f6;
   color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-.text-brasilit-red {
-  color: #EE1B24;
-}
-
-.text-brasilit-yellow {
-  color: #FFEB00;
-}
-
-.text-brasilit-blue {
-  color: #00529C;
-}
-
-.border-brasilit-red {
-  border-color: #EE1B24;
-}
-
-/* Estilo para o cabeçalho da aplicação */
-.brasilit-header {
-  background-color: #EE1B24;
-  color: white;
-}
-
-/* Estilo para a barra de navegação inferior */
-.brasilit-navbar {
-  background-color: #FFEB00;
-  color: black;
-}
-
-/* Gradientes especiais para elementos da marca */
-.brasilit-gradient {
-  background: linear-gradient(110deg, #EE1B24 30%, #00529C 90%);
-  color: white;
-}
-
-/* Estilos responsivos */
-@media (max-width: 640px) {
-  .responsive-container {
+/* Estilos para o modo standalone (instalado) */
+@media (display-mode: standalone) {
+  /* Ajustes para quando o app está instalado */
+  body {
+    /* Evita o comportamento de bounce em iOS */
+    position: fixed;
     width: 100%;
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  h1.responsive-title {
-    font-size: 1.5rem !important;
-  }
-  
-  .responsive-hidden-mobile {
-    display: none;
-  }
-  
-  .responsive-card {
-    max-width: 100% !important;
-    min-width: 0 !important;
-    width: 100% !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-    padding: 0 !important;
-  }
-  
-  /* Certificar que os itens da grid não sejam cortados */
-  .grid > div {
-    min-width: 0 !important;
-    width: 100% !important;
-    overflow: hidden !important;
-  }
-  
-  /* Ajustes para cards no dashboard */
-  .grid-cols-2 > .responsive-card .card {
     height: 100%;
+    overflow: hidden;
   }
   
-  .grid-cols-2 > .responsive-card .card-content {
-    padding: 0.75rem !important;
+  #root {
+    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+    /* Permite scroll com momentum em iOS */
+    -webkit-overflow-scrolling: touch;
   }
-}
-
-/* Otimizações de performance */
-.optimize-gpu {
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-font-smoothing: subpixel-antialiased;
-}
-
-/* Transições suaves para todos os elementos interativos */
-button, a, input, select, .card, .animate-transition {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Melhorias para telas de alta resolução */
-@media (min-width: 1600px) {
-  .responsive-container-xl {
-    max-width: 1400px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-/* Estilos de acessibilidade para foco */
-button:focus-visible, 
-a:focus-visible, 
-input:focus-visible, 
-select:focus-visible, 
-textarea:focus-visible {
-  outline: 2px solid #EE1B24;
-  outline-offset: 2px;
-}
-
-/* Melhoria no contraste para elementos importantes */
-.high-contrast-text {
-  text-shadow: 0 0 1px rgba(0,0,0,0.3);
-}
-
-/* Layout fluido com grid responsivo */
-.responsive-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: 1rem;
-}
-
-/* Animações otimizadas */
-.optimized-animation {
-  animation-duration: 300ms;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Estilo para o modo de anotação de imagem */
-.annotating-mode {
-  cursor: crosshair !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-}
-
-.annotating-mode img {
-  pointer-events: none !important;
-  user-drag: none !important;
-  -webkit-user-drag: none !important;
-  -moz-user-drag: none !important;
-  -ms-user-drag: none !important;
 }

@@ -5,15 +5,11 @@
   "start_url": "/?source=pwa",
   "id": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#ffffff",
   "theme_color": "#EE1B24",
   "orientation": "any",
   "scope": "/",
   "categories": ["business", "productivity", "utilities"],
-  "launch_handler": {
-    "client_mode": ["navigate-existing", "auto"]
-  },
   "icons": [
     {
       "src": "brasilit-icon-192.svg",
@@ -28,42 +24,16 @@
       "purpose": "any"
     },
     {
-      "src": "brasilit-icon-192-maskable.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    },
-    {
-      "src": "brasilit-icon-512-maskable.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    },
-    {
-      "src": "https://cdn.cloudflare.com/static/brasilit/brasilit-icon-192-maskable.png",
+      "src": "brasilit-icon-192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://cdn.cloudflare.com/static/brasilit/brasilit-icon-512-maskable.png",
+      "src": "brasilit-icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot-narrow.jpg",
-      "sizes": "540x1200",
-      "type": "image/jpeg",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "screenshot-wide.jpg",
-      "sizes": "1200x800",
-      "type": "image/jpeg",
-      "form_factor": "wide"
     }
   ],
   "shortcuts": [
@@ -80,37 +50,11 @@
       "description": "Ver minhas vistorias em andamento e finalizadas",
       "url": "/inspections?source=shortcut",
       "icons": [{ "src": "shortcut-list.svg", "sizes": "192x192" }]
-    },
-    {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Visualizar dashboard de vistorias",
-      "url": "/?source=shortcut",
-      "icons": [{ "src": "shortcut-dashboard.svg", "sizes": "192x192" }]
     }
   ],
   "lang": "pt-BR",
   "dir": "ltr",
   "prefer_related_applications": false,
-  "related_applications": [],
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
-  "handle_links": "auto",
-  "file_handlers": [
-    {
-      "action": "/open-inspection",
-      "accept": {
-        "application/brasilit-inspection": [".brinsp"]
-      }
-    }
-  ],
-  "protocol_handlers": [
-    {
-      "protocol": "web+brasilit",
-      "url": "/?protocol=%s"
-    }
-  ],
   "related_applications": [
     {
       "platform": "play",
@@ -120,11 +64,5 @@
       "platform": "itunes",
       "url": "https://apps.apple.com/app/id0000000000"
     }
-  ],
-  "permissions": [
-    "notifications",
-    "background-sync",
-    "periodic-background-sync"
   ]
 }
-// Manifest otimizado para PWA, Cloudflare, Microsoft Edge e integração máxima. Inclui campos recomendados para SEO, acessibilidade, shortcuts, screenshots, handlers e integração cross-plataforma.

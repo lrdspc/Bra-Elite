@@ -1,270 +1,143 @@
-import { openDB, deleteDB, DBSchema, IDBPDatabase } from 'idb';
-import { Client, Project, Inspection, Evidence, User } from '@shared/schema';
+import { openDB, DBSchema, IDBPDatabase } from 'idb';
 
-export interface BrasilitDB extends DBSchema {
-  clients: {
-    key: number;
-    value: Client;
-    indexes: { 'by-name': string };
-  };
-  projects: {
-    key: number;
-    value: Project;
-    indexes: { 'by-client': number };
-  };
+interface BrasilitDB extends DBSchema {
   inspections: {
-    key: number;
-    value: Inspection;
-    indexes: {
-      'by-user': number;
-      'by-client': number;
-      'by-project': number;
-      'by-status': string;
-      'by-date': Date;
-    };
-  };
-  evidences: {
-    key: number;
-    value: Evidence;
-    indexes: { 'by-inspection': number };
-  };
-  syncQueue: {
     key: string;
     value: {
       id: string;
-      method: string;
-      url: string;
-      body?: any;
-      timestamp: number;
-      attempts: number;
+      title: string;
+      clientName: string;
+      address: string;
+      date: string;
+      status: 'draft' | 'pending' | 'completed';
+      syncStatus: 'synced' | 'pending' | 'failed';
+      data: any;
+      updatedAt: number;
+    };
+    indexes: { 'by-status': string; 'by-sync': string; 'by-date': string };
+  };
+  images: {
+    key: string;
+    value: {
+      id: string;
+      inspectionId: string;
+      blob: Blob;
+      thumbnail: Blob;
+      caption: string;
+      syncStatus: 'synced' | 'pending' | 'failed';
+      updatedAt: number;
+    };
+    indexes: { 'by-inspection': string; 'by-sync': string };
+  };
+  userData: {
+    key: string;
+    value: {
+      id: string;
+      data: any;
+      updatedAt: number;
     };
   };
 }
 
-// Initialize the IndexedDB database
-let dbPromise: Promise<IDBPDatabase<BrasilitDB>>;
+let dbPromise: Promise<IDBPDatabase<BrasilitDB>> | null = null;
 
-export async function initDB(): Promise<IDBPDatabase<BrasilitDB>> {
+export const initDB = () => {
   if (!dbPromise) {
-    dbPromise = openDB<BrasilitDB>('brasilit-vistorias', 1, {
+    dbPromise = openDB<BrasilitDB>('brasilit-db', 1, {
       upgrade(db) {
-        // Clients store
-        if (!db.objectStoreNames.contains('clients')) {
-          const clientStore = db.createObjectStore('clients', { keyPath: 'id' });
-          clientStore.createIndex('by-name', 'name');
-        }
-        
-        // Projects store
-        if (!db.objectStoreNames.contains('projects')) {
-          const projectStore = db.createObjectStore('projects', { keyPath: 'id' });
-          projectStore.createIndex('by-client', 'clientId');
-        }
-        
-        // Inspections store
+        // Inspeções
         if (!db.objectStoreNames.contains('inspections')) {
           const inspectionStore = db.createObjectStore('inspections', { keyPath: 'id' });
-          inspectionStore.createIndex('by-user', 'userId');
-          inspectionStore.createIndex('by-client', 'clientId');
-          inspectionStore.createIndex('by-project', 'projectId');
           inspectionStore.createIndex('by-status', 'status');
-          inspectionStore.createIndex('by-date', 'scheduledDate');
+          inspectionStore.createIndex('by-sync', 'syncStatus');
+          inspectionStore.createIndex('by-date', 'updatedAt');
         }
-        
-        // Evidences store
-        if (!db.objectStoreNames.contains('evidences')) {
-          const evidenceStore = db.createObjectStore('evidences', { keyPath: 'id' });
-          evidenceStore.createIndex('by-inspection', 'inspectionId');
+
+        // Imagens
+        if (!db.objectStoreNames.contains('images')) {
+          const imageStore = db.createObjectStore('images', { keyPath: 'id' });
+          imageStore.createIndex('by-inspection', 'inspectionId');
+          imageStore.createIndex('by-sync', 'syncStatus');
         }
-        
-        // Sync queue store
-        if (!db.objectStoreNames.contains('syncQueue')) {
-          db.createObjectStore('syncQueue', { keyPath: 'id' });
+
+        // Dados do usuário
+        if (!db.objectStoreNames.contains('userData')) {
+          db.createObjectStore('userData', { keyPath: 'id' });
         }
       }
     });
   }
-  
   return dbPromise;
-}
+};
 
-// Client CRUD operations
-export async function saveClient(client: Client): Promise<number> {
-  const db = await initDB();
-  return db.put('clients', client);
-}
+// API para inspeções
+export const inspectionDB = {
+  async getAll() {
+    const db = await initDB();
+    return db.getAll('inspections');
+  },
 
-export async function getClient(id: number): Promise<Client | undefined> {
-  const db = await initDB();
-  return db.get('clients', id);
-}
+  async getById(id: string) {
+    const db = await initDB();
+    return db.get('inspections', id);
+  },
 
-export async function getAllClients(): Promise<Client[]> {
-  const db = await initDB();
-  return db.getAll('clients');
-}
+  async save(inspection: any) {
+    const db = await initDB();
+    inspection.updatedAt = Date.now();
+    return db.put('inspections', inspection);
+  },
 
-export async function deleteClient(id: number): Promise<void> {
-  const db = await initDB();
-  return db.delete('clients', id);
-}
+  async delete(id: string) {
+    const db = await initDB();
+    return db.delete('inspections', id);
+  },
 
-// Project CRUD operations
-export async function saveProject(project: Project): Promise<number> {
-  const db = await initDB();
-  return db.put('projects', project);
-}
-
-export async function getProject(id: number): Promise<Project | undefined> {
-  const db = await initDB();
-  return db.get('projects', id);
-}
-
-export async function getAllProjects(): Promise<Project[]> {
-  const db = await initDB();
-  return db.getAll('projects');
-}
-
-export async function getProjectsByClient(clientId: number): Promise<Project[]> {
-  const db = await initDB();
-  const index = db.transaction('projects').store.index('by-client');
-  return index.getAll(clientId);
-}
-
-export async function deleteProject(id: number): Promise<void> {
-  const db = await initDB();
-  return db.delete('projects', id);
-}
-
-// Inspection CRUD operations
-export async function saveInspection(inspection: Inspection): Promise<number> {
-  const db = await initDB();
-  return db.put('inspections', inspection);
-}
-
-export async function getInspection(id: number): Promise<Inspection | undefined> {
-  const db = await initDB();
-  return db.get('inspections', id);
-}
-
-export async function getAllInspections(): Promise<Inspection[]> {
-  const db = await initDB();
-  return db.getAll('inspections');
-}
-
-export async function getInspectionsByUser(userId: number): Promise<Inspection[]> {
-  const db = await initDB();
-  const index = db.transaction('inspections').store.index('by-user');
-  return index.getAll(userId);
-}
-
-export async function getInspectionsByClient(clientId: number): Promise<Inspection[]> {
-  const db = await initDB();
-  const index = db.transaction('inspections').store.index('by-client');
-  return index.getAll(clientId);
-}
-
-export async function getInspectionsByProject(projectId: number): Promise<Inspection[]> {
-  const db = await initDB();
-  const index = db.transaction('inspections').store.index('by-project');
-  return index.getAll(projectId);
-}
-
-export async function getInspectionsByStatus(status: string): Promise<Inspection[]> {
-  const db = await initDB();
-  const index = db.transaction('inspections').store.index('by-status');
-  return index.getAll(status);
-}
-
-export async function deleteInspection(id: number): Promise<void> {
-  const db = await initDB();
-  return db.delete('inspections', id);
-}
-
-// Evidence CRUD operations
-export async function saveEvidence(evidence: Evidence): Promise<number> {
-  const db = await initDB();
-  return db.put('evidences', evidence);
-}
-
-export async function getEvidence(id: number): Promise<Evidence | undefined> {
-  const db = await initDB();
-  return db.get('evidences', id);
-}
-
-export async function getEvidencesByInspection(inspectionId: number): Promise<Evidence[]> {
-  const db = await initDB();
-  const index = db.transaction('evidences').store.index('by-inspection');
-  return index.getAll(inspectionId);
-}
-
-export async function deleteEvidence(id: number): Promise<void> {
-  const db = await initDB();
-  return db.delete('evidences', id);
-}
-
-// Sync queue operations
-export async function addToSyncQueue(method: string, url: string, body?: any): Promise<void> {
-  const db = await initDB();
-  const id = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-  await db.add('syncQueue', {
-    id,
-    method,
-    url,
-    body,
-    timestamp: Date.now(),
-    attempts: 0
-  });
-}
-
-export async function getSyncQueue(): Promise<any[]> {
-  const db = await initDB();
-  return db.getAll('syncQueue');
-}
-
-export async function removeFromSyncQueue(id: string): Promise<void> {
-  const db = await initDB();
-  return db.delete('syncQueue', id);
-}
-
-export async function updateSyncQueueItem(id: string, data: any): Promise<void> {
-  const db = await initDB();
-  const item = await db.get('syncQueue', id);
-  if (item) {
-    await db.put('syncQueue', { ...item, ...data });
+  async getPendingSync() {
+    const db = await initDB();
+    return db.getAllFromIndex('inspections', 'by-sync', 'pending');
   }
-}
+};
 
-// Clear all data
-export async function clearAllData(): Promise<void> {
-  await deleteDB('brasilit-vistorias');
-  dbPromise = initDB();
-}
+// API para imagens
+export const imageDB = {
+  async getByInspection(inspectionId: string) {
+    const db = await initDB();
+    return db.getAllFromIndex('images', 'by-inspection', inspectionId);
+  },
 
-// Bulk operations for initial sync
-export async function bulkSaveClients(clients: Client[]): Promise<void> {
-  const db = await initDB();
-  const tx = db.transaction('clients', 'readwrite');
-  await Promise.all(clients.map(client => tx.store.put(client)));
-  await tx.done;
-}
+  async save(image: any) {
+    const db = await initDB();
+    image.updatedAt = Date.now();
+    return db.put('images', image);
+  },
 
-export async function bulkSaveProjects(projects: Project[]): Promise<void> {
-  const db = await initDB();
-  const tx = db.transaction('projects', 'readwrite');
-  await Promise.all(projects.map(project => tx.store.put(project)));
-  await tx.done;
-}
+  async delete(id: string) {
+    const db = await initDB();
+    return db.delete('images', id);
+  },
 
-export async function bulkSaveInspections(inspections: Inspection[]): Promise<void> {
-  const db = await initDB();
-  const tx = db.transaction('inspections', 'readwrite');
-  await Promise.all(inspections.map(inspection => tx.store.put(inspection)));
-  await tx.done;
-}
+  async getPendingSync() {
+    const db = await initDB();
+    return db.getAllFromIndex('images', 'by-sync', 'pending');
+  }
+};
 
-export async function bulkSaveEvidences(evidences: Evidence[]): Promise<void> {
-  const db = await initDB();
-  const tx = db.transaction('evidences', 'readwrite');
-  await Promise.all(evidences.map(evidence => tx.store.put(evidence)));
-  await tx.done;
-}
+// API para dados do usuário
+export const userDataDB = {
+  async get(id: string) {
+    const db = await initDB();
+    return db.get('userData', id);
+  },
+
+  async save(data: any) {
+    const db = await initDB();
+    data.updatedAt = Date.now();
+    return db.put('userData', data);
+  }
+};
+
+// Inicializa o banco de dados
+initDB().catch(err => {
+  console.error('Erro ao inicializar o banco de dados:', err);
+});
