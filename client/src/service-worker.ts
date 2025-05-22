@@ -9,6 +9,8 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 // Tipagem para o Service Worker
+// Service Worker PWA otimizado para Cloudflare Workers e CDN
+
 declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
 };
@@ -22,6 +24,7 @@ cleanupOutdatedCaches();
 
 // Pré-cache de recursos estáticos
 precacheAndRoute(self.__WB_MANIFEST || []);
+
 
 // Cache de páginas
 registerRoute(

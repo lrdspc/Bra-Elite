@@ -1,19 +1,19 @@
-// Configurações principais do service worker
+// Service Worker PWA otimizado para Cloudflare Workers e CDN
 const APP_VERSION = '1.0.0';
-const CACHE_NAME = 'brasilit-vistoria-v1-' + APP_VERSION;
+const CACHE_NAME = 'brasilit-cloudflare-cache-v1-' + APP_VERSION;
 const OFFLINE_URL = '/offline.html';
-const DEBUG = false; // Definir como true para logs detalhados
+const DEBUG = false; // Ative para logs detalhados
 
-// Caches diferentes para diferentes tipos de conteúdo
+// Caches segmentados por tipo de conteúdo
 const CACHES = {
-  static: `${CACHE_NAME}-static`,  // Para arquivos estáticos que raramente mudam
-  pages: `${CACHE_NAME}-pages`,    // Para arquivos HTML
-  images: `${CACHE_NAME}-images`,  // Para imagens
-  fonts: `${CACHE_NAME}-fonts`,    // Para fontes
-  api: `${CACHE_NAME}-api`         // Para respostas da API
+  static: `${CACHE_NAME}-static`,
+  pages: `${CACHE_NAME}-pages`,
+  images: `${CACHE_NAME}-images`,
+  fonts: `${CACHE_NAME}-fonts`,
+  api: `${CACHE_NAME}-api`
 };
 
-// Assets estáticos que devem ser pré-cacheados durante a instalação
+// Assets essenciais para pré-cache
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -25,7 +25,9 @@ const STATIC_ASSETS = [
   '/brasilit-icon-512-maskable.svg',
   '/shortcut-dashboard.svg',
   '/shortcut-inspection.svg',
-  '/shortcut-list.svg'
+  '/shortcut-list.svg',
+  'https://cdn.cloudflare.com/static/brasilit/brasilit-icon-192-maskable.png',
+  'https://cdn.cloudflare.com/static/brasilit/brasilit-icon-512-maskable.png'
 ];
 
 // Função helper para logs condicionais
