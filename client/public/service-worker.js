@@ -1,6 +1,8 @@
 // Service Worker PWA otimizado para Cloudflare Workers e CDN
 const APP_VERSION = '1.0.0';
-const CACHE_NAME = 'brasilit-cloudflare-cache-v1-' + APP_VERSION;
+const CACHE_NAME = 'braelite-cloudflare-cache-v1-' + APP_VERSION;
+const CACHE_VERSION = 'v1';
+const CDN_HOST = 'https://cdn.braelite.com';
 const OFFLINE_URL = '/offline.html';
 const DEBUG = false; // Ative para logs detalhados
 
@@ -84,6 +86,21 @@ function getCacheNameForRequest(request) {
   
   // Conteúdo estático (CSS, JS, etc.)
   return CACHES.static;
+        }
+
+        // Nova estratégia de cache para CDN
+        async function cacheFirstWithCDN(request) {
+          const cache = await caches.open(CACHE_NAME);
+          const cachedResponse = await cache.match(request);
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          const response = await fetch(CDN_HOST + new URL(request.url).pathname);
+          if (response.ok) {
+            cache.put(request, response.clone());
+          }
+          return response;
+        }
 }
 
 // Função para mostrar indicador de sincronização

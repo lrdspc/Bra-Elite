@@ -62,11 +62,13 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@rollup/plugin-inject": "^5.0.5",
     "@types/node": "^22.15.21",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "postcss": "^8.4.32",
     "typescript": "^5.2.2",
-    "vite-plugin-pwa": "^1.0.0"
+    "vite-plugin-pwa": "^1.0.0",
+    "vite-plugin-static-copy": "^3.0.0"
   }
 }

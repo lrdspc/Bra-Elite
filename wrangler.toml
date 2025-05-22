@@ -5,14 +5,23 @@ compatibility_date = "2024-01-01"
 type = "javascript"
 compatibility_flags = ["nodejs_compat", "streams_enable_constructors"]
 
-[site]
-source = "client/dist"
-entry-point = "server/index.ts"
-bucket = "bra-elite-assets"
+[pages]
+pages_build_output_dir = "dist"
+
+[triggers]
+crons = ["0 0 * * *"]
 
 [build]
 command = "npm run build"
 watch_dir = "client/src"
+
+[pages]
+build_output_dir = "dist"
+branch = "main"
+
+[vars]
+CLOUDFLARE_ACCOUNT_ID = "${CLOUDFLARE_ACCOUNT_ID}"
+CLOUDFLARE_API_TOKEN = "${CLOUDFLARE_API_TOKEN}"
 
 [env.production]
 vars = { ENVIRONMENT = "production" }
