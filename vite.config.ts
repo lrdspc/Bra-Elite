@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
   const pwaOptions = {
     // Configuração básica do PWA
     strategies: 'injectManifest' as const,
-    srcDir: 'client/public',
+    srcDir: 'src',
     filename: 'service-worker.js',
     registerType: isProduction ? 'autoUpdate' as const : 'autoUpdate' as const,
     injectRegister: 'auto' as const,
@@ -164,7 +164,7 @@ export default defineConfig(({ mode }) => {
       suppressWarnings: true,
     },
     injectManifest: {
-      swSrc: path.resolve(__dirname, 'client/src/service-worker.ts'),
+      swSrc: path.resolve(__dirname, 'client/src/service-worker.js'),
       swDest: path.resolve(__dirname, 'dist/sw.js'),
       globDirectory: 'dist',
       globPatterns: [
@@ -179,7 +179,13 @@ export default defineConfig(({ mode }) => {
       react(),
       runtimeErrorOverlay(),
       themePlugin(),
-      VitePWA(pwaOptions)
+      VitePWA(pwaOptions),
+      require('tailwindcss')({
+        content: [
+          './client/src/**/*.{js,jsx,ts,tsx}',
+          './client/public/index.html'
+        ]
+      })
     ],
     resolve: {
       alias: {
