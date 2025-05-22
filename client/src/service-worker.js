@@ -1,9 +1,8 @@
-// This is a basic service worker implementation
-// It will be enhanced by Vite PWA plugin during build
+// Service Worker otimizado para Cloudflare Workers e CDN
+// Integração com autenticação Cloudflare Access
+// Todos os assets devem ser servidos via CDN Cloudflare
 
-// Required for Vite PWA plugin
 const manifest = self.__WB_MANIFEST;
-
 const CACHE_NAME = 'brasilit-cloudflare-cache-v1';
 const urlsToCache = [
   '/',
@@ -19,11 +18,9 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', (event) => {
-  // Perform install steps
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
         return cache.addAll(urlsToCache);
       })
   );
@@ -32,54 +29,42 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Verifica se a requisição é para a API
+  // Integração com autenticação Cloudflare Access
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { credentials: 'include' })
         .then(response => {
-          // Verifica se a resposta é válida
           if (!response || response.status !== 200) {
             return response;
           }
-
-          // Armazena a resposta no cache da API
           const responseToCache = response.clone();
           caches.open(CACHE_NAME)
             .then(cache => {
               cache.put(event.request, responseToCache);
             });
-
           return response;
         })
         .catch(() => {
-          // Fallback para o cache em caso de falha na rede
           return caches.match(event.request);
         })
     );
   } else {
-    // Lógica padrão para outros tipos de requisições
     event.respondWith(
       caches.match(event.request)
         .then(response => {
-          // Cache hit - return response
           if (response) {
             return response;
           }
           return fetch(event.request).then(
             response => {
-              // Check if we received a valid response
               if(!response || response.status !== 200 || response.type !== 'basic') {
                 return response;
               }
-
-              // Clone the response
               const responseToCache = response.clone();
-
               caches.open(CACHE_NAME)
                 .then(cache => {
                   cache.put(event.request, responseToCache);
                 });
-
               return response;
             }
           );
@@ -87,6 +72,7 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
