@@ -87,8 +87,6 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
-});
-
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
