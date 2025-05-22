@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => {
   const pwaOptions = {
     // Configuração básica do PWA
     strategies: 'injectManifest' as const,
-    srcDir: 'client/src',
-    filename: 'sw.js',
+    srcDir: 'client/public',
+    filename: 'service-worker.js',
     registerType: isProduction ? 'autoUpdate' as const : 'autoUpdate' as const,
     injectRegister: 'auto' as const,
     includeAssets: [
