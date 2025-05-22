@@ -179,13 +179,7 @@ export default defineConfig(({ mode }) => {
       react(),
       runtimeErrorOverlay(),
       themePlugin(),
-      VitePWA(pwaOptions),
-      require('tailwindcss')({
-        content: [
-          './client/src/**/*.{js,jsx,ts,tsx}',
-          './client/public/index.html'
-        ]
-      })
+      VitePWA(pwaOptions)
     ],
     resolve: {
       alias: {
