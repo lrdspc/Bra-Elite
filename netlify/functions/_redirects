@@ -1,0 +1,3 @@
+# Redirecionamentos para funções
+/api/*  /.netlify/functions/:splat  200
+/*      /.netlify/functions/hello   200

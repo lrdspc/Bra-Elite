@@ -1,17 +1,125 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type UserConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import themePlugin from '@replit/vite-plugin-shadcn-theme-json';
 import path, { dirname } from 'path';
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
 import { fileURLToPath } from 'url';
-import { VitePWA } from 'vite-plugin-pwa';
+import { VitePWA, type VitePWAOptions } from 'vite-plugin-pwa';
+import type { PluginOption } from 'vite'; // Adicionando importação do tipo PluginOption
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export default defineConfig(({ mode }) => {
+// Configuração do VitePWA
+const getPWAOptions = (isProduction: boolean): Partial<VitePWAOptions> => ({
+  strategies: 'injectManifest',
+  srcDir: 'src',
+  filename: 'service-worker.js',
+  registerType: 'autoUpdate',
+  includeAssets: [
+    'brasilit-icon-192-maskable.png',
+    'brasilit-icon-512-maskable.png',
+    'brasilit-icon-192.svg',
+    'brasilit-icon-512.svg',
+    'favicon.ico',
+    'robots.txt',
+    'apple-touch-icon.png'
+  ],
+  manifest: {
+    name: 'Brasilit Vistorias Técnicas',
+    short_name: 'Brasilit',
+    description: 'Sistema de Vistorias Técnicas da Brasilit - Saint-Gobain',
+    theme_color: '#EE1B24',
+    background_color: '#ffffff',
+    display: 'standalone',
+    start_url: '/?source=pwa',
+    scope: '/',
+    orientation: 'portrait',
+    prefer_related_applications: false,
+    icons: [
+      {
+        src: 'brasilit-icon-192-maskable.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable any',
+      },
+      {
+        src: 'brasilit-icon-512-maskable.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable any',
+      },
+    ],
+  },
+  devOptions: {
+    enabled: !isProduction,
+    type: 'module',
+    navigateFallback: 'index.html',
+  },
+});
+
+// Configuração base para o Vite
+export default defineConfig(({ mode }): UserConfig => {
   const isProduction = mode === 'production';
   const isReplit = process.env.REPL_ID !== undefined;
+  
+  // Configuração base para o Vite
+  const baseConfig: UserConfig = {
+    base: '/',
+    plugins: [
+      react(),
+      // Desabilitando temporariamente o PWA para resolver problemas de build
+      // VitePWA(getPWAOptions(isProduction)) as PluginOption
+    ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
+    server: {
+      port: 5173,
+      strictPort: true,
+      open: !process.env.CI,
+    },
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: !isProduction,
+      minify: isProduction ? 'esbuild' : false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+          },
+        },
+      },
+    },
+  };
+  
+  // Configurações específicas para desenvolvimento
+  if (!isProduction) {
+    const devConfig: UserConfig = {
+      ...baseConfig,
+      define: {
+        'process.env': {}
+      },
+      server: {
+        ...baseConfig.server,
+        proxy: {
+          '/.netlify/functions': {
+            target: 'http://localhost:9999',
+            changeOrigin: true,
+            secure: false,
+            ws: true,
+          },
+        },
+      },
+    };
+    return devConfig;
+  }
+  
+  // Configurações para produção
+  return baseConfig;
 
   // Configuração do VitePWA
   const pwaOptions = {
@@ -175,10 +283,23 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
+    base: isProduction ? '/' : '/',
     plugins: [
       react(),
       runtimeErrorOverlay(),
       themePlugin(),
+      // Configuração para funcionar com o Netlify Dev
+      !isProduction && {
+        name: 'configure-server',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            next();
+          });
+        }
+      },
       VitePWA(pwaOptions)
     ],
     resolve: {

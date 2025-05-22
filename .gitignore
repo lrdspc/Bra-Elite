@@ -22,16 +22,31 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Diretório node_modules
+# Dependências
 node_modules
+.pnp
+.pnp.js
 
-# Editor directories and files
+# Build
+dist
+dist-ssr
+.netlify
+.netlify/*
+
+# Ambiente local
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 !.vscode/launch.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
@@ -50,3 +65,58 @@ drizzle/migrations/.snapshot.json
 
 # PWA
 dev-dist
+
+# Netlify
+.netlify
+.netlify/
+.netlify/*
+.netlify/**/*
+.netlify/functions
+.netlify/functions/*
+.netlify/functions/**/*
+.netlify/edge-functions
+.netlify/edge-functions/*
+.netlify/edge-functions/**/*
+.netlify/cache
+.netlify/cache/*
+.netlify/cache/**/*
+.netlify/deploy
+.netlify/deploy/*
+.netlify/deploy/**/*
+.netlify/deployments
+.netlify/deployments/*
+.netlify/deployments/**/*
+.netlify/state.json
+.netlify/large-media/
+.netlify/large-media/*
+.netlify/large-media/**/*
+.netlify/plugins/
+.netlify/plugins/*
+.netlify/plugins/**/*
+.netlify/plugins.json
+.netlify/context/
+.netlify/context/*
+.netlify/context/**/*
+.netlify/build/
+.netlify/build/*
+.netlify/build/**/*
+.netlify/builds/
+.netlify/builds/*
+.netlify/builds/**/*
+.netlify/functions-src/
+.netlify/functions-src/*
+.netlify/functions-src/**/*
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Arquivos de desenvolvimento local
+.netlify/
+
+# Logs do Netlify
+.netlify/logs/
+
+# Cache do Netlify
+.netlify/cache/
