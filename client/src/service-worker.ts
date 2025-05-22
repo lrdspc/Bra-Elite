@@ -8,13 +8,10 @@ import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategi
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
-declare let self: ServiceWorkerGlobalScope;
-
-// Manifesto do PWA que será injetado pelo plugin vite-plugin-pwa
-declare const self.__WB_MANIFEST: any;
-
-// Referência necessária para injeção do manifesto
-self.__WB_MANIFEST;
+// Tipagem para o Service Worker
+declare const self: ServiceWorkerGlobalScope & {
+  __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
+};
 
 // Ativa o service worker imediatamente
 self.skipWaiting();
@@ -24,7 +21,7 @@ clientsClaim();
 cleanupOutdatedCaches();
 
 // Pré-cache de recursos estáticos
-precacheAndRoute(self.__WB_MANIFEST);
+precacheAndRoute(self.__WB_MANIFEST || []);
 
 // Cache de páginas
 registerRoute(

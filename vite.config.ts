@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => {
   const pwaOptions = {
     // Configuração básica do PWA
     strategies: 'injectManifest' as const,
-    srcDir: 'src',
-    filename: 'service-worker.js',
-    registerType: isProduction ? 'autoUpdate' as const : undefined,
+    srcDir: 'client/src',
+    filename: 'sw.js',
+    registerType: isProduction ? 'autoUpdate' as const : 'autoUpdate' as const,
     injectRegister: 'auto' as const,
     includeAssets: [
       'brasilit-icon-192-maskable.png', 
@@ -164,9 +164,13 @@ export default defineConfig(({ mode }) => {
       suppressWarnings: true,
     },
     injectManifest: {
+      swSrc: path.resolve(__dirname, 'client/src/service-worker.ts'),
+      swDest: path.resolve(__dirname, 'dist/sw.js'),
+      globDirectory: 'dist',
       globPatterns: [
         '**/*.{js,css,html,ico,png,svg,jpg,jpeg,gif,webp,woff,woff2,ttf,eot,json}'
-      ]
+      ],
+      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
     },
   };
 
