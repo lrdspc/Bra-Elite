@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, Navigation, LocateFixed, Route } from 'lucide-react';
+import { MapPin, Navigation, LocateFixed, Route, ListPlus, ListMinus, CheckSquare, Square, X } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { mockInspections } from '@/lib/mockData';
+import { mockInspections, Inspection } from '@/lib/mockData'; 
 
-// These imports will work once the packages are installed
-// @ts-ignore
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-// @ts-ignore
-import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
+import L, { LatLngExpression } from 'leaflet';
+import RouteOrderingModal from './RouteOrderingModal'; // Import the new modal
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default marker icons in React Leaflet
@@ -101,123 +99,114 @@ const LocationFinder = () => {
   );
 };
 
-// Component to calculate and display optimized route
-const RouteOptimizer = ({ inspections }: { inspections: any[] }) => {
+// Layer to display the sequenced route
+const SequencedRouteLayer = ({ orderedInspections }: { orderedInspections: Inspection[] }) => {
   const map = useMap();
-  const { toast } = useToast();
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [route, setRoute] = useState<any>(null);
+  const routePoints = useMemo(() => {
+    return orderedInspections
+      .filter(insp => insp.latitude && insp.longitude)
+      .map(insp => [insp.latitude, insp.longitude] as LatLngExpression);
+  }, [orderedInspections]);
 
-  const calculateOptimizedRoute = () => {
-    setIsCalculating(true);
+  useEffect(() => {
+    if (routePoints.length > 1) {
+      map.fitBounds(L.polyline(routePoints).getBounds(), { padding: [50, 50] });
+    }
+  }, [routePoints, map]);
 
-    // In a real implementation, this would call a routing API like GraphHopper, OSRM, or MapBox
-    // For this demo, we'll just create a simple route connecting all points
-    setTimeout(() => {
-      try {
-        if (inspections.length < 2) {
-          toast({
-            title: 'Rota não disponível',
-            description: 'É necessário ter pelo menos 2 pontos para calcular uma rota.',
-            variant: 'destructive',
-          });
-          setIsCalculating(false);
-          return;
-        }
+  if (routePoints.length < 2) {
+    return null;
+  }
 
-        // Get coordinates from inspections
-        const points = inspections
-          .filter(insp => insp.latitude && insp.longitude)
-          .map(insp => [insp.latitude, insp.longitude]);
-
-        if (points.length < 2) {
-          toast({
-            title: 'Dados de localização insuficientes',
-            description: 'Algumas vistorias não possuem dados de localização.',
-            variant: 'destructive',
-          });
-          setIsCalculating(false);
-          return;
-        }
-
-        // Create a polyline for the route
-        const routeLine = L.polyline(points, { color: 'blue', weight: 4, opacity: 0.7 });
-
-        // Remove previous route if exists
-        if (route) {
-          map.removeLayer(route);
-        }
-
-        // Add new route to map
-        routeLine.addTo(map);
-        setRoute(routeLine);
-
-        // Fit map to show the entire route
-        map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
-
-        toast({
-          title: 'Rota calculada',
-          description: `Rota otimizada com ${points.length} pontos de parada.`,
-        });
-      } catch (error) {
-        console.error('Error calculating route:', error);
-        toast({
-          title: 'Erro ao calcular rota',
-          description: 'Ocorreu um erro ao calcular a rota otimizada.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsCalculating(false);
-      }
-    }, 1500); // Simulate API delay
-  };
-
-  return (
-    <div className="leaflet-bottom leaflet-right" style={{ marginBottom: '20px' }}>
-      <div className="leaflet-control">
-        <Button 
-          onClick={calculateOptimizedRoute}
-          disabled={isCalculating}
-          className="flex items-center gap-2"
-        >
-          <Route className="h-4 w-4" />
-          {isCalculating ? 'Calculando...' : 'Calcular Rota Otimizada'}
-        </Button>
-      </div>
-    </div>
-  );
+  return <Polyline positions={routePoints} color="blue" weight={4} opacity={0.7} />;
 };
 
 const MapView: React.FC = () => {
   const [mapCenter, setMapCenter] = useState<[number, number]>([-25.4284, -49.2733]); // Curitiba as default
+  const [selectedInspections, setSelectedInspections] = useState<Inspection[]>([]);
+  const [orderedInspections, setOrderedInspections] = useState<Inspection[]>([]);
+  const [isOrderingModalOpen, setIsOrderingModalOpen] = useState(false); // State for modal
+  const { toast } = useToast();
 
   // Fetch inspections with scheduled status
-  const { data: inspections, isLoading } = useQuery({
+  const { data: inspections, isLoading } = useQuery<Inspection[], Error>({ // Added type for data and error
     queryKey: ['/api/inspections?status=scheduled'],
-    // Use mock data for testing
     queryFn: async () => {
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       return mockInspections.filter(insp => insp.status === 'scheduled');
     }
   });
 
-  // Sort inspections by protocol date (oldest first for prioritization)
-  const sortedInspections = React.useMemo(() => {
+  const sortedInspections = useMemo(() => {
     if (!inspections) return [];
-
-    return [...inspections]
-      .sort((a, b) => {
-        const dateA = a.protocolDate ? new Date(a.protocolDate).getTime() : 0;
-        const dateB = b.protocolDate ? new Date(b.protocolDate).getTime() : 0;
-        return dateA - dateB; // Oldest first
-      });
+    return [...inspections].sort((a, b) => {
+      const dateA = a.protocolDate ? new Date(a.protocolDate).getTime() : 0;
+      const dateB = b.protocolDate ? new Date(b.protocolDate).getTime() : 0;
+      return dateA - dateB;
+    });
   }, [inspections]);
+
+  const toggleSelection = (inspection: Inspection) => {
+    setSelectedInspections(prev => {
+      const isSelected = prev.find(i => i.id === inspection.id);
+      if (isSelected) {
+        return prev.filter(i => i.id !== inspection.id);
+      } else {
+        if (prev.length >= 10) { // Limit selection to 10 for now
+          toast({
+            title: "Limite de seleção atingido",
+            description: "Você pode selecionar no máximo 10 vistorias para a rota.",
+            variant: "destructive"
+          });
+          return prev;
+        }
+        return [...prev, inspection];
+      }
+    });
+  };
+  
+  // Update orderedInspections whenever selectedInspections changes (basic for now)
+  useEffect(() => {
+    setOrderedInspections(selectedInspections);
+  }, [selectedInspections]);
+
+
+  const handlePlanRoute = () => {
+    if (selectedInspections.length < 2) {
+      toast({
+        title: "Seleção insuficiente",
+        description: "Selecione pelo menos 2 vistorias para planejar uma rota.",
+        variant: "destructive"
+      });
+      return;
+    }
+    // The SequencedRouteLayer will automatically update based on orderedInspections state
+    // Now, open the modal
+    setIsOrderingModalOpen(true);
+  };
+
+  const handleOrderChange = (newOrder: Inspection[]) => {
+    setOrderedInspections(newOrder);
+    // Optionally, also update selectedInspections if the modal could remove items
+    setSelectedInspections(newOrder); 
+    toast({
+      title: "Ordem da rota atualizada",
+      description: "A sequência da rota no mapa foi atualizada.",
+    });
+  };
 
   return (
     <Card className="md:col-span-2 overflow-hidden">
       <CardHeader className="px-4 py-3 border-b border-neutral-light flex flex-row justify-between items-center">
-        <h2 className="font-medium">Mapa de Vistorias</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-medium">Mapa de Vistorias</h2>
+          {selectedInspections.length > 0 && (
+            <Button onClick={handlePlanRoute} size="sm" variant="default">
+              <Route className="h-4 w-4 mr-1" />
+              {orderedInspections.length > 1 ? 'Editar Rota' : 'Ordenar Rota'} ({selectedInspections.length})
+            </Button>
+          )}
+        </div>
         <div className="text-sm text-muted-foreground">
           {sortedInspections.length} vistoria(s) agendada(s)
         </div>
@@ -241,21 +230,20 @@ const MapView: React.FC = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
 
-              {sortedInspections.map((inspection: any) => {
-                // Skip if no coordinates
+              {sortedInspections.map((inspection: Inspection) => {
                 if (!inspection.latitude || !inspection.longitude) return null;
+                const urgencyInfo = getUrgencyInfo(inspection.protocolDate || '');
+                const isSelected = selectedInspections.some(i => i.id === inspection.id);
+                const orderIndex = orderedInspections.findIndex(i => i.id === inspection.id);
 
-                // Get urgency information based on protocol date
-                const urgencyInfo = getUrgencyInfo(inspection.protocolDate);
-
-                // Create custom icon based on urgency
                 const customIcon = L.divIcon({
-                  className: 'custom-div-icon',
-                  html: `<div class="marker-pin ${urgencyInfo.urgencyClass}"></div>`,
+                  className: `custom-div-icon ${isSelected ? 'selected' : ''}`,
+                  html: `<div class="marker-pin ${urgencyInfo.urgencyClass} ${isSelected ? 'ring-2 ring-blue-500' : ''}"></div>
+                         ${isSelected && orderIndex !== -1 ? `<div class="marker-order-badge">${orderIndex + 1}</div>` : ''}`,
                   iconSize: [30, 42],
                   iconAnchor: [15, 42]
                 });
-
+                
                 return (
                   <Marker 
                     key={inspection.id} 
@@ -263,12 +251,12 @@ const MapView: React.FC = () => {
                     icon={customIcon}
                   >
                     <Popup>
-                      <div className="p-1">
+                      <div className="p-1 space-y-2">
                         <h3 className="font-medium text-sm">{inspection.projectName || `Projeto #${inspection.projectId}`}</h3>
                         <p className="text-xs text-muted-foreground">{inspection.address || 'Endereço pendente'}</p>
                         <div className="flex items-center gap-1 mt-1">
                           <Badge className="text-[10px] h-4">
-                            {formatDateTime(inspection.scheduledDate)}
+                            {inspection.scheduledDate ? formatDateTime(inspection.scheduledDate) : 'Data N/A'}
                           </Badge>
                           {inspection.protocolDate && (
                             <Badge variant="outline" className="text-[10px] h-4">
@@ -276,6 +264,15 @@ const MapView: React.FC = () => {
                             </Badge>
                           )}
                         </div>
+                        <Button 
+                          size="xs" 
+                          variant={isSelected ? "destructive" : "outline"}
+                          onClick={() => toggleSelection(inspection)}
+                          className="w-full flex items-center gap-1"
+                        >
+                          {isSelected ? <ListMinus className="h-3 w-3" /> : <ListPlus className="h-3 w-3" />}
+                          {isSelected ? 'Remover da Rota' : 'Adicionar à Rota'}
+                        </Button>
                       </div>
                     </Popup>
                   </Marker>
@@ -283,7 +280,7 @@ const MapView: React.FC = () => {
               })}
 
               <LocationFinder />
-              <RouteOptimizer inspections={sortedInspections} />
+              <SequencedRouteLayer orderedInspections={orderedInspections} />
             </MapContainer>
 
             {/* CSS for custom markers */}
@@ -294,11 +291,37 @@ const MapView: React.FC = () => {
                 border-radius: 50%;
                 border: 2px solid white;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                position: relative; /* For order badge positioning */
+              }
+              :global(.marker-pin.ring-2) { /* Style for selected marker pin */
+                border-color: #3b82f6; /* blue-500 */
+              }
+              :global(.marker-order-badge) {
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background-color: #3b82f6; /* blue-500 */
+                color: white;
+                border-radius: 50%;
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                border: 1px solid white;
               }
             `}</style>
           </div>
         )}
       </CardContent>
+      <RouteOrderingModal
+        isOpen={isOrderingModalOpen}
+        onClose={() => setIsOrderingModalOpen(false)}
+        inspections={selectedInspections}
+        onOrderChange={handleOrderChange}
+      />
     </Card>
   );
 };

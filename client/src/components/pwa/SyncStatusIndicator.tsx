@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { inspectionDB, imageDB } from '../../lib/db';
-import { syncManager } from '../../lib/syncManager';
-import useNetworkStatus from '../../hooks/useNetworkStatus';
+import { inspectionDB, imageDB } from '@/lib/db';
+import { syncManager } from '@/pwa/syncManager';
+import useNetworkStatus from '@/pwa/hooks/useNetworkStatus';
 
 /**
  * Componente que exibe o status de sincronização e permite sincronizar manualmente

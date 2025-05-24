@@ -1,5 +1,5 @@
 import React from 'react';
-import usePWAInstall from '../../hooks/usePWAInstall';
+import usePWAInstall from '@/pwa/hooks/usePWAInstall';
 
 /**
  * Botão para instalar o PWA

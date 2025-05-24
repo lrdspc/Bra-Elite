@@ -1,5 +1,5 @@
 import React from 'react';
-import useNetworkStatus from '../../hooks/useNetworkStatus';
+import useNetworkStatus from '@/pwa/hooks/useNetworkStatus';
 
 /**
  * Componente que exibe um indicador quando o usuário está offline

@@ -1,4 +1,4 @@
-import { inspectionDB, imageDB } from './db';
+import { inspectionDB, imageDB } from '../lib/db'; // Adjusted import path for db
 
 /**
  * Gerenciador de sincronização para dados offline
@@ -55,7 +55,7 @@ export class SyncManager {
     for (const inspection of inspections) {
       try {
         // Envia para o servidor
-        const response = await fetch('/api/inspections', {
+        const response = await fetch('/api/inspections', { // Assuming API endpoint
           method: inspection.id.startsWith('local-') ? 'POST' : 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -101,21 +101,25 @@ export class SyncManager {
       try {
         // Cria um FormData para envio da imagem
         const formData = new FormData();
-        formData.append('image', image.blob);
+        formData.append('evidenceFile', image.blob, image.fileName || 'evidence.png'); // Use 'evidenceFile' as expected by backend
         formData.append('inspectionId', image.inspectionId);
-        formData.append('caption', image.caption || '');
+        if(image.category) formData.append('category', image.category);
+        if(image.notes) formData.append('notes', image.notes);
         
         // Envia para o servidor
-        const response = await fetch('/api/images', {
+        const response = await fetch('/api/evidences', { // Assuming API endpoint for evidences
           method: 'POST',
-          body: formData,
+          body: formData, // FormData sets Content-Type automatically
         });
 
         if (!response.ok) {
           throw new Error(`Erro ao sincronizar imagem: ${response.statusText}`);
         }
         
-        // Marca como sincronizado
+        const result = await response.json();
+        // Update image ID from server response if necessary
+        image.id = result.id; // Assuming server returns the new ID for the evidence
+        image.fileKey = result.fileKey; // And the server-side file path/key
         image.syncStatus = 'synced';
         await imageDB.save(image);
       } catch (error) {
@@ -129,17 +133,19 @@ export class SyncManager {
   /**
    * Registra uma tarefa de sincronização em segundo plano
    */
-  async registerBackgroundSync(): Promise<boolean> {
+  async registerBackgroundSync(tag: string): Promise<boolean> {
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('sync-inspections');
+        await registration.sync.register(tag);
+        console.log(`Background sync for tag '${tag}' registered.`);
         return true;
       } catch (error) {
-        console.error('Erro ao registrar sincronização em segundo plano:', error);
+        console.error(`Erro ao registrar sincronização em segundo plano para '${tag}':`, error);
         return false;
       }
     }
+    console.warn('Background Sync not supported.');
     return false;
   }
 }

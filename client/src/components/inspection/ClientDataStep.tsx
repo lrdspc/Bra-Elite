@@ -9,7 +9,7 @@ import { Search, MapPin, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDocumentNumber, formatPhoneNumber } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { isOnline } from '@/lib/pwa';
+import { isOnline } from '@/pwa/pwa';
 
 interface ClientDataStepProps {
   formData: any;

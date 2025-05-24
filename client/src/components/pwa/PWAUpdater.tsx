@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import useServiceWorker from '../../hooks/useServiceWorker';
+import useServiceWorker from '@/pwa/hooks/useServiceWorker';
 
 /**
  * Componente que gerencia atualizações do PWA

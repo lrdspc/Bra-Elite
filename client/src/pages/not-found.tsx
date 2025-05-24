@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import useNetworkStatus from '../hooks/useNetworkStatus';
+import useNetworkStatus from '@/pwa/hooks/useNetworkStatus';
 
 /**
  * Página 404 com suporte a detecção de estado offline

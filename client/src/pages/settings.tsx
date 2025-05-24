@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { isOnline, checkForServiceWorkerUpdates, clearAllData } from '@/lib/pwa';
+import { isOnline } from '@/pwa/pwa'; // Updated import for isOnline
+// import { checkForServiceWorkerUpdates, clearAllData } from '@/pwa/pwa'; // These are not exported
 import { AlertTriangle, Cloud, CloudOff, RefreshCw, Database, Trash2, Lock, Bell, Phone, Palette, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -78,54 +79,53 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleCheckForUpdates = async () => {
-    toast({
-      title: "Verificando atualizações",
-      description: "Aguarde enquanto verificamos por novas versões...",
-    });
+  // TODO: Re-implement checkForServiceWorkerUpdates functionality.
+  // The original function was removed or is not available in the new pwa.ts path.
+  // const handleCheckForUpdates = async () => {
+  //   toast({
+  //     title: "Verificando atualizações",
+  //     description: "Aguarde enquanto verificamos por novas versões...",
+  //   });
+  //   try {
+  //     // await checkForServiceWorkerUpdates(); 
+  //     // For demo purposes, always say no updates after a delay
+  //     setTimeout(() => {
+  //       toast({
+  //         title: "Sistema atualizado",
+  //         description: "Você já está usando a versão mais recente do aplicativo.",
+  //       });
+  //     }, 2000);
+  //   } catch (error) {
+  //     toast({
+  //       title: "Erro ao verificar atualizações",
+  //       description: "Não foi possível verificar atualizações. Tente novamente mais tarde.",
+  //       variant: "destructive"
+  //     });
+  //   }
+  // };
 
-    try {
-      await checkForServiceWorkerUpdates();
-      
-      // For demo purposes, always say no updates after a delay
-      setTimeout(() => {
-        toast({
-          title: "Sistema atualizado",
-          description: "Você já está usando a versão mais recente do aplicativo.",
-        });
-      }, 2000);
-    } catch (error) {
-      toast({
-        title: "Erro ao verificar atualizações",
-        description: "Não foi possível verificar atualizações. Tente novamente mais tarde.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleClearData = async () => {
-    setIsDataClearDialogOpen(false);
-    
-    toast({
-      title: "Limpando dados",
-      description: "Aguarde enquanto excluímos os dados locais...",
-    });
-
-    try {
-      await clearAllData();
-      
-      toast({
-        title: "Dados limpos",
-        description: "Todos os dados locais foram excluídos com sucesso.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao limpar dados",
-        description: "Ocorreu um erro ao limpar os dados. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
+  // TODO: Re-implement clearAllData functionality.
+  // The original function was removed or is not available in the new pwa.ts path.
+  // const handleClearData = async () => {
+  //   setIsDataClearDialogOpen(false);
+  //   toast({
+  //     title: "Limpando dados",
+  //     description: "Aguarde enquanto excluímos os dados locais...",
+  //   });
+  //   try {
+  //     // await clearAllData();
+  //     toast({
+  //       title: "Dados limpos",
+  //       description: "Todos os dados locais foram excluídos com sucesso.",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Erro ao limpar dados",
+  //       description: "Ocorreu um erro ao limpar os dados. Tente novamente.",
+  //       variant: "destructive"
+  //     });
+  //   }
+  // };
 
   return (
     <div>
@@ -232,10 +232,12 @@ const SettingsPage: React.FC = () => {
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Sincronizar Agora
                 </Button>
+                {/* TODO: Re-enable this button once handleCheckForUpdates is re-implemented 
                 <Button variant="outline" onClick={handleCheckForUpdates}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Verificar Atualizações
                 </Button>
+                */}
               </CardFooter>
             </Card>
             
@@ -253,15 +255,22 @@ const SettingsPage: React.FC = () => {
                 <p className="text-sm">
                   Limpar todos os dados locais removerá todas as vistorias não sincronizadas, 
                   clientes e projetos armazenados neste dispositivo. Essa ação não pode ser desfeita.
+                  {/* TODO: This functionality needs to be re-implemented. */}
                 </p>
               </CardContent>
               <CardFooter>
+                {/* TODO: Re-enable this button once handleClearData is re-implemented
                 <Button 
                   variant="destructive" 
                   onClick={() => setIsDataClearDialogOpen(true)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Limpar Todos os Dados
+                </Button>
+                */}
+                 <Button variant="destructive" disabled>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Limpar Todos os Dados (Desabilitado)
                 </Button>
               </CardFooter>
             </Card>
@@ -473,6 +482,7 @@ const SettingsPage: React.FC = () => {
       </div>
 
       {/* Clear Data Confirmation Dialog */}
+      {/* TODO: Re-enable this AlertDialog once handleClearData is re-implemented
       <AlertDialog open={isDataClearDialogOpen} onOpenChange={setIsDataClearDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -490,6 +500,7 @@ const SettingsPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      */}
     </div>
   );
 };
