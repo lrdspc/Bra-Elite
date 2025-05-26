@@ -105,7 +105,7 @@
     "autoprefixer": "^10.4.21",
     "canvas": "^3.1.0",
     "concurrently": "^9.1.2",
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.1",
     "esbuild": "^0.25.4",
     "netlify-cli": "^21.5.0",
     "postcss": "^8.5.3",
